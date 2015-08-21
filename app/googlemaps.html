@@ -1,0 +1,180 @@
+<!--
+/**
+ * Copyright (C) 2015 Orange
+ * 
+ * This software is distributed under the terms and conditions of the 'Apache-2.0'
+ * license which can be found in the file 'LICENSE' in this package distribution 
+ * or at 'http://www.apache.org/licenses/LICENSE-2.0'. 
+ */
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Orange Datavenue : Stream on a Map</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+    	html, body, #map-canvas {
+    	height: 100%;
+        margin: 0;
+        padding: 0;
+    	}
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+    <script>
+	var map;
+	var markersArray = [];
+	var pathsArray = [];
+
+	google.maps.LatLng.prototype.kmTo = function(a){ 
+    	var e = Math, ra = e.PI/180; 
+    	var b = this.lat() * ra, c = a.lat() * ra, d = b - c; 
+    	var g = this.lng() * ra - a.lng() * ra; 
+    	var f = 2 * e.asin(e.sqrt(e.pow(e.sin(d/2), 2) + e.cos(b) * e.cos(c) * e.pow(e.sin(g/2), 2))); 
+    return f * 6378.137; 
+	}
+
+	google.maps.Polyline.prototype.inKm = function(n){ 
+    	var a = this.getPath(n), len = a.getLength(), dist = 0; 
+    	for (var i=0; i < len-1; i++) { 
+       		dist += a.getAt(i).kmTo(a.getAt(i+1)); 
+    	}
+    return dist; 
+	}
+
+	function initialize() {
+  		map = new google.maps.Map(document.getElementById('map-canvas'), {
+   			zoom: 6,
+    		center: {lat: 46.0, lng: 3.25}
+  		});
+	}
+
+	google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+    <script src="jquery-2.1.4.min.js"></script>
+    <script>
+	function drawMap() {
+ 		var oapikey = document.getElementById("oapikey").value;
+ 		var apikey = document.getElementById("apikey").value;
+    	var endpoint = document.getElementById("endpoint").value;
+    	clearOverlays();
+    	getValue(oapikey, apikey, endpoint);
+	}
+	
+	function clearOverlays() {
+		for (var i = 0; i < pathsArray.length; i++ ) {
+    		pathsArray[i].setMap(null);
+  		}
+  		pathsArray.length = 0;
+  		
+  		for (var i = 0; i < markersArray.length; i++ ) {
+    		markersArray[i].setMap(null);
+  		}
+  		markersArray.length = 0;
+	}
+	
+	function addMarker(location, title) {
+        marker = new google.maps.Marker({
+            position: location,
+            map: map,
+            title: title
+        });
+        markersArray.push(marker);
+    }
+	
+	function showMarker(data) {
+		bounds = new google.maps.LatLngBounds();
+		for (var i=data.length-1; i>=0; i--) {
+			if (data[i].hasOwnProperty("location")) {
+				position = new google.maps.LatLng(data[i].location[0], data[i].location[1]);
+				bounds.extend(position);
+        		addMarker(position, null);
+        	}
+        }
+        map.fitBounds(bounds);
+	}
+	
+	function showPath(data) {
+		recordedCoordinates = [];
+		bounds = new google.maps.LatLngBounds();
+		
+		for (var i=data.length-1; i>=0; i--) {
+			point = new google.maps.LatLng(data[i].location[0], data[i].location[1]);
+			
+			if (data[i].metadata.hasOwnProperty("provider")) {
+				
+				if (data[i].metadata.provider == "gps") {
+					recordedCoordinates.push(point);
+					bounds.extend(point);
+				}
+			}
+		}
+		
+		addMarker(recordedCoordinates[0], "Start");
+		addMarker(recordedCoordinates[recordedCoordinates.length -1], "Finish");
+		
+		recordedPath = new google.maps.Polyline({
+    		path: recordedCoordinates,
+    		geodesic: true,
+    		strokeColor: '#FF0000',
+    		strokeOpacity: 1.0,
+    		strokeWeight: 2
+  		});
+
+		map.fitBounds(bounds);
+		pathsArray.push(recordedPath);
+  		recordedPath.setMap(map);
+  		
+  		var div = document.getElementById('info');
+  		div.innerHTML = 'distance : ' + Math.round(recordedPath.inKm()*100)/100 + "km";  		   
+
+    	var ctx = document.getElementById("canvas").getContext("2d");
+   		window.myLine = new Chart(ctx, config);
+	}
+	
+	function getValue (oapikey, apikey, endpoint) {
+		var fullurl = endpoint + "/values?pagesize=2000";
+     	
+     	jQuery.ajax({
+         type: "GET",
+         url: fullurl,
+         contentType: "application/json; charset=utf-8",
+         dataType: "json",
+         beforeSend: function(xhr){xhr.setRequestHeader('X-OAPI-Key', oapikey);xhr.setRequestHeader('X-ISS-Key', apikey); },
+         success: function (data, status, jqXHR) {         
+            if (document.getElementById('marker').checked) {
+               showMarker(data);
+            } else {
+            	showPath(data);
+            }
+         },
+
+         error: function (jqXHR, status) {
+             alert("error ! : " + status);
+         }
+        });
+        
+    }
+
+</script>
+  </head>
+  <body>
+  <div id="oapi" style="float:left">Orange Partner Key :<input type="password" name="oapikey" id="oapikey" size="32" placeholder="OAPI Key" value=""></div>
+  <div id="api">API Key :<input type="password" name="apikey" id="apikey" size="32" placeholder="API Key" value=""></div>
+  <div id="url">URL :<input type="text" name="endpoint" id="endpoint" size="150" placeholder="full URL to Datavenue's values" value=""></div>
+  <div id="type">Trace Type :<input type="radio" name="drawtype" id="marker" value="Marker">Marker</a><input type="radio" name="drawtype" id="polyline" value="Polyline" checked>Polyline</div>
+  <div id="button"><button onclick="drawMap()">Load Data</button></div>
+  <style>
+   #wrapper{
+   z-index:99;
+   position:absolute;
+   bottom: 10px;
+   left: 10px
+   }
+  </style>
+  <div id="map-canvas"></div>
+  <div id="wrapper">
+  <div id="info" style="background-color: rgba(0, 128, 128, .8);"></div>
+  </div>
+  </body>
+</html>

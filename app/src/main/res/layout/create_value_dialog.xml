@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/at_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            style="@style/dialog_label"
+            android:text="at :"/>
+
+        <EditText
+            android:id="@+id/at"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:singleLine="true"
+            android:hint="timestamp"
+            android:textColorHint="@color/hint_color"
+            android:inputType="textNoSuggestions"
+            style="@style/dialog_value" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/value_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            style="@style/dialog_label"
+            android:text="value :"/>
+
+        <EditText
+            android:id="@+id/value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:singleLine="false"
+            android:lines="5"
+            android:minLines="5"
+            android:hint="JSON Value Playload"
+            android:textColorHint="@color/hint_color"
+            android:inputType="textNoSuggestions"
+            style="@style/dialog_value" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/metadata_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            style="@style/dialog_label"
+            android:text="metadata :"/>
+
+        <EditText
+            android:id="@+id/metadata"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:inputType="textNoSuggestions"
+            android:singleLine="true"
+            android:hint="JSON Metadata Playload"
+            android:textColorHint="@color/hint_color"
+            style="@style/dialog_value" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/location_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            style="@style/dialog_label"
+            android:text="location :"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/latitude"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="numberDecimal|numberSigned"
+                android:hint="latitude"
+                android:textColorHint="@color/hint_color"
+                android:singleLine="true"
+                style="@style/dialog_value" />
+
+            <EditText
+                android:id="@+id/longitude"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="numberDecimal|numberSigned"
+                android:hint="longitude"
+                android:textColorHint="@color/hint_color"
+                android:singleLine="true"
+                style="@style/dialog_value" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp">
+
+        <Button
+            android:id="@+id/add_button"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:text="@string/add"/>
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:text="@string/cancel"/>
+
+    </LinearLayout>
+
+</LinearLayout>

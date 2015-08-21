@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">Datavenue - Android Sample</string>
+    <string name="action_logout">Logout</string>
+    <string name="add_value">Add value</string>
+    <string name="add_sensor_value">Add Sensor values</string>
+    <string name="geolocation">Sending Geolocation...</string>
+    <string name="main_activity">Account</string>
+    <string name="login_activity">Login</string>
+    <string name="datasource_activity">Datasources</string>
+    <string name="datasource_activity_count">Datasources %1$d/%2$d</string>
+    <string name="stream_activity">Streams</string>
+    <string name="stream_activity_count">Streams %1$d/%2$d</string>
+    <string name="value_activity">Values</string>
+    <string name="value_activity_count">Values %1$d/%2$d</string>
+    <string name="account">Account</string>
+    <string name="datasource">Datasources</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="update">Update</string>
+    <string name="share">Share</string>
+    <string name="add">Add</string>
+    <string name="last">last :</string>
+    <string name="waiting">waiting for location !</string>
+    <string name="delete_datasource">Delete Datasource %1$s and its Streams/Values ?</string>
+    <string name="delete_stream">Delete Stream %1$s and its Values ?</string>
+    <string name="delete_value">Delete Value %1$s ?</string>
+    <string name="add_stream">Add Stream</string>
+    <string name="update_stream">Update Stream</string>
+    <string name="add_datasource">Add Datasource</string>
+    <string name="update_datasource">Update Datasource</string>
+    <string name="error">Error</string>
+    <string name="register">Do not have an account ? Register <a href="https://datavenue.orange.com/">here</a> !</string>
+</resources>

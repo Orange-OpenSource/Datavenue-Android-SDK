@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="orange">#FFF4791F</color>
+    <color name="green">#FF00FF00</color>
+    <color name="hint_color">#44000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00FFFFFF</color>
+    <drawable name="selected_color">@color/orange</drawable>
+    <drawable name="pressed_color">@color/orange</drawable>
+    <drawable name="no_selection_color">@color/transparent</drawable>
+</resources>
