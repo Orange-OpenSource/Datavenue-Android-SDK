@@ -6,7 +6,7 @@
     </style>
 
     <style name="list_header_label">
-        <item name="android:textColor">@color/orange</item>
+        <item name="android:textColor">@drawable/list_selecter_text</item>
         <item name="android:textStyle">bold</item>
         <item name="android:gravity">right</item>
         <item name="android:textSize">14dp</item>
@@ -19,7 +19,7 @@
     </style>
 
     <style name="list_label">
-        <item name="android:textColor">@color/orange</item>
+        <item name="android:textColor">@drawable/list_selecter_text</item>
         <item name="android:gravity">right</item>
         <item name="android:textSize">12dp</item>
     </style>

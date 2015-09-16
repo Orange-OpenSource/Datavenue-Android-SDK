@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -171,10 +172,17 @@ public class DatasourceFragment extends ListFragment {
                     final EditText name = (EditText) mDialog.findViewById(R.id.name);
                     final EditText description = (EditText) mDialog.findViewById(R.id.description);
                     final EditText serial = (EditText) mDialog.findViewById(R.id.serial);
+                    final CheckBox status = (CheckBox) mDialog.findViewById(R.id.status);
 
                     name.setText(Model.instance.currentDatasource.getName());
                     description.setText(Model.instance.currentDatasource.getDescription());
                     serial.setText(Model.instance.currentDatasource.getSerial());
+
+                    if ("activated".equals(Model.instance.currentDatasource.getStatus())) {
+                        status.setChecked(true);
+                    } else if ("deactivated".equals(Model.instance.currentDatasource.getStatus())) {
+                        status.setChecked(false);
+                    }
 
                     Button updateButton = (Button) mDialog.findViewById(R.id.add_button);
                     updateButton.setText(getString(R.string.update_datasource));
@@ -185,6 +193,7 @@ public class DatasourceFragment extends ListFragment {
                             Log.d(TAG_NAME, "name : " + name.getText().toString());
                             Log.d(TAG_NAME, "description : " + description.getText().toString());
                             Log.d(TAG_NAME, "serial : " + serial.getText().toString());
+                            Log.d(TAG_NAME, "status : " + status.isChecked());
 
                             Datasource newDatasource = new Datasource();
 
@@ -208,6 +217,12 @@ public class DatasourceFragment extends ListFragment {
                                 newDatasource.setSerial(null);
                             } else {
                                 newDatasource.setSerial(serial.getText().toString());
+                            }
+
+                            if (status.isChecked()) {
+                                newDatasource.setStatus("activated");
+                            } else {
+                                newDatasource.setStatus("deactivated");
                             }
 
                             UpdateDatasourceOperation updateDatasourceOperation = new UpdateDatasourceOperation(
@@ -279,6 +294,9 @@ public class DatasourceFragment extends ListFragment {
                 final EditText name = (EditText) dialog.findViewById(R.id.name);
                 final EditText description = (EditText) dialog.findViewById(R.id.description);
                 final EditText serial = (EditText) dialog.findViewById(R.id.serial);
+                final CheckBox status = (CheckBox) mDialog.findViewById(R.id.status);
+
+                status.setChecked(true);
 
                 Button addButton = (Button) dialog.findViewById(R.id.add_button);
                 addButton.setOnClickListener(new View.OnClickListener() {
@@ -291,6 +309,13 @@ public class DatasourceFragment extends ListFragment {
                         newDatasource.setName(name.getText().toString());
                         newDatasource.setDescription(description.getText().toString());
                         newDatasource.setSerial(serial.getText().toString());
+
+                        if (status.isChecked()) {
+                            newDatasource.setStatus("activated");
+                        } else {
+                            newDatasource.setStatus("deactivated");
+                        }
+
 
                         CreateDatasourceOperation createDatasourceOperation = new CreateDatasourceOperation(
                                 Model.instance.account,
