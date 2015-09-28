@@ -294,7 +294,7 @@ public class DatasourceFragment extends ListFragment {
                 final EditText name = (EditText) dialog.findViewById(R.id.name);
                 final EditText description = (EditText) dialog.findViewById(R.id.description);
                 final EditText serial = (EditText) dialog.findViewById(R.id.serial);
-                final CheckBox status = (CheckBox) mDialog.findViewById(R.id.status);
+                final CheckBox status = (CheckBox) dialog.findViewById(R.id.status);
 
                 status.setChecked(true);
 
