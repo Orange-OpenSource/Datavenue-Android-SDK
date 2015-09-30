@@ -1,0 +1,7 @@
+[FasterXML] - version 2.4.1, 2.0.4
+
+Copyright © 2009-2011 FasterXML, LLC
+
+[FasterXML] is distributed under the terms and conditions of the Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+https://github.com/FasterXML
