@@ -10,7 +10,9 @@ package com.orange.datavenue.client.common;
 
 import android.util.Log;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,7 +69,10 @@ public class ApiInvoker {
 				else
 					return json;
 			} else {
-				return JsonUtil.getJsonMapper().readValue(json, cls);
+				if (json != null) {
+					return JsonUtil.getJsonMapper().readValue(json, cls);
+				}
+				throw new SDKException(500, "Unexpected Service Response");
 			}
 		} catch (IOException e) {
 			throw new SDKException(500, e.getMessage());

@@ -30,6 +30,7 @@ import android.widget.TextView;
 import com.orange.datavenue.client.Config;
 import com.orange.datavenue.client.model.Callback;
 import com.orange.datavenue.client.model.Page;
+import com.orange.datavenue.client.model.Unit;
 import com.orange.datavenue.operation.CreateStreamOperation;
 import com.orange.datavenue.operation.UpdateStreamOperation;
 import com.orange.datavenue.utils.Errors;
@@ -194,6 +195,8 @@ public class StreamFragment extends ListFragment {
 
                     final EditText name = (EditText) mDialog.findViewById(R.id.name);
                     final EditText description = (EditText) mDialog.findViewById(R.id.description);
+                    final EditText unit = (EditText) mDialog.findViewById(R.id.unit);
+                    final EditText symbol = (EditText) mDialog.findViewById(R.id.symbol);
                     final EditText latitude = (EditText) mDialog.findViewById(R.id.latitude);
                     final EditText longitude = (EditText) mDialog.findViewById(R.id.longitude);
 
@@ -203,6 +206,15 @@ public class StreamFragment extends ListFragment {
                     if (Model.instance.currentStream.getLocation() != null) {
                         latitude.setText(Double.toString(Model.instance.currentStream.getLocation()[0]));
                         longitude.setText(Double.toString(Model.instance.currentStream.getLocation()[1]));
+                    }
+
+                    if (Model.instance.currentStream.getUnit() != null) {
+                        if (Model.instance.currentStream.getUnit().getName() != null) {
+                            unit.setText(Model.instance.currentStream.getUnit().getName());
+                        }
+                        if (Model.instance.currentStream.getUnit().getSymbol() != null) {
+                            symbol.setText(Model.instance.currentStream.getUnit().getSymbol());
+                        }
                     }
 
                     Button updateButton = (Button) mDialog.findViewById(R.id.add_button);
@@ -231,6 +243,9 @@ public class StreamFragment extends ListFragment {
                                 newStream.setDescription(description.getText().toString());
                             }
 
+                            /**
+                             * Allocate new Location
+                             */
                             Double[] location = null;
 
                             String strLatitude = latitude.getText().toString();
@@ -248,6 +263,32 @@ public class StreamFragment extends ListFragment {
                             }
 
                             newStream.setLocation(location);
+
+                            /**
+                             * Allocate new Unit
+                             */
+                            Unit newUnit = null;
+
+                            String strUnit = unit.getText().toString();
+                            String strSymbol = symbol.getText().toString();
+
+                            if (!"".equals(strUnit)) {
+                                if (newUnit == null) {
+                                    newUnit = new Unit();
+                                }
+                                newUnit.setName(strUnit);
+                            }
+
+                            if (!"".equals(strSymbol)) {
+                                if (newUnit == null) {
+                                    newUnit = new Unit();
+                                }
+                                newUnit.setSymbol(strSymbol);
+                            }
+
+                            if (newUnit != null) {
+                                newStream.setUnit(newUnit);
+                            }
 
                             UpdateStreamOperation updateStreamOperation = new UpdateStreamOperation(
                                     Model.instance.account,
@@ -324,6 +365,8 @@ public class StreamFragment extends ListFragment {
 
                 final EditText name = (EditText) mDialog.findViewById(R.id.name);
                 final EditText description = (EditText) mDialog.findViewById(R.id.description);
+                final EditText unit = (EditText) mDialog.findViewById(R.id.unit);
+                final EditText symbol = (EditText) mDialog.findViewById(R.id.symbol);
                 final EditText latitude = (EditText) mDialog.findViewById(R.id.latitude);
                 final EditText longitude = (EditText) mDialog.findViewById(R.id.longitude);
 
@@ -338,6 +381,9 @@ public class StreamFragment extends ListFragment {
                         newStream.setName(name.getText().toString());
                         newStream.setDescription(description.getText().toString());
 
+                        /**
+                         * Allocate new Location
+                         */
                         Double[] location = null;
 
                         String strLatitude = latitude.getText().toString();
@@ -354,7 +400,36 @@ public class StreamFragment extends ListFragment {
                             location = null;
                         }
 
-                        newStream.setLocation(location);
+                        if (location != null) {
+                            newStream.setLocation(location);
+                        }
+                        /**************************************************************************/
+
+                        /**
+                         * Allocate new Unit
+                         */
+                        Unit newUnit = null;
+                        String strUnit = unit.getText().toString();
+                        String strSymbol = symbol.getText().toString();
+
+                        if (!"".equals(strUnit)) {
+                            if (newUnit == null) {
+                                newUnit = new Unit();
+                            }
+                            newUnit.setName(strUnit);
+                        }
+
+                        if (!"".equals(strSymbol)) {
+                            if (newUnit == null) {
+                                newUnit = new Unit();
+                            }
+                            newUnit.setSymbol(strSymbol);
+                        }
+
+                        if (newUnit != null) {
+                            newStream.setUnit(newUnit);
+                        }
+                        /**************************************************************************/
 
                         CreateStreamOperation createStreamOperation = new CreateStreamOperation(
                                 Model.instance.account,

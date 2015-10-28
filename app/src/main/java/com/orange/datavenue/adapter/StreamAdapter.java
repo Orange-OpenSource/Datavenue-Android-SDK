@@ -21,6 +21,7 @@ import com.orange.datavenue.R;
 import com.orange.datavenue.client.common.ApiInvoker;
 import com.orange.datavenue.client.common.SDKException;
 import com.orange.datavenue.client.model.Stream;
+import com.orange.datavenue.client.model.Unit;
 
 import java.util.List;
 
@@ -56,6 +57,8 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
             holder.id = (TextView)convertView.findViewById(R.id.id);
             holder.name = (TextView)convertView.findViewById(R.id.name);
             holder.description = (TextView)convertView.findViewById(R.id.description);
+            holder.unit = (TextView)convertView.findViewById(R.id.unit);
+            holder.symbol = (TextView)convertView.findViewById(R.id.symbol);
             holder.created = (TextView)convertView.findViewById(R.id.created);
             holder.updated = (TextView)convertView.findViewById(R.id.updated);
             holder.latitude = (TextView)convertView.findViewById(R.id.latitude);
@@ -73,6 +76,23 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
             holder.id.setText(item.getId());
             holder.name.setText(item.getName());
             holder.description.setText(item.getDescription());
+
+            Unit unit = item.getUnit();
+
+            holder.unit.setText("");
+            holder.symbol.setText("");
+
+            if (unit != null) {
+                if (unit.getName() != null) {
+                    holder.unit.setText(unit.getName());
+
+                }
+
+                if (unit.getSymbol() != null) {
+                    holder.symbol.setText(unit.getSymbol());
+                }
+            }
+
             holder.created.setText(item.getCreated());
             holder.updated.setText(item.getUpdated());
             Double[] location = item.getLocation();
@@ -109,6 +129,8 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
         TextView id;
         TextView name;
         TextView description;
+        TextView unit;
+        TextView symbol;
         TextView created;
         TextView updated;
         TextView latitude;

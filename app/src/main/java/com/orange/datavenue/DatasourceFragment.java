@@ -185,7 +185,7 @@ public class DatasourceFragment extends ListFragment {
                     }
 
                     Button updateButton = (Button) mDialog.findViewById(R.id.add_button);
-                    updateButton.setText(getString(R.string.update_datasource));
+                    updateButton.setText(getString(R.string.update));
 
                     updateButton.setOnClickListener(new View.OnClickListener() {
                         @Override
