@@ -348,7 +348,7 @@ public class DatasourcesApi {
 	 *             <li>Code 916 : Resource not found (ApiKey not found)</li>
 	 *             </ul>
 	 */
-	public ApiKey deleteApiKey(String datasourceId, String keyId) throws SDKException, HTTPException {
+	public void deleteApiKey(String datasourceId, String keyId) throws SDKException, HTTPException {
 		Object postBody = null;
 		// verify required params are set
 		if (datasourceId == null || keyId == null) {
@@ -370,7 +370,6 @@ public class DatasourcesApi {
 		String contentType =  "application/json";
 
 		HttpResponse httpResponse = apiInvoker.invokeAPI(basePath, path, "DELETE", queryParams, postBody, headerParams, formParams, contentType);
-		return (ApiKey) ApiInvoker.deserialize(httpResponse.body, "", ApiKey.class);
 	}
 
 	/**
@@ -433,7 +432,7 @@ public class DatasourcesApi {
 	 *             <li>Code 934 : Naming conflict</li>
 	 *             </ul>
 	 */
-	public ApiKey updateApiKey(String datasourceId, String keyId, ApiKey body) throws SDKException, HTTPException {
+	public void updateApiKey(String datasourceId, String keyId, ApiKey body) throws SDKException, HTTPException {
 		Object postBody = body;
 		// verify required params are set
 		if (datasourceId == null || keyId == null) {
@@ -455,7 +454,6 @@ public class DatasourcesApi {
 		String contentType =  "application/json";
 
 		HttpResponse httpResponse = apiInvoker.invokeAPI(basePath, path, "PUT", queryParams, postBody, headerParams, formParams, contentType);
-		return (ApiKey) ApiInvoker.deserialize(httpResponse.body, "", ApiKey.class);
 	}
 
 	/**

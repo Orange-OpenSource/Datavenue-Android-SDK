@@ -199,7 +199,8 @@ public class ValueFragment extends ListFragment implements Notifier {
                             Log.d(TAG_NAME, "value : " + Model.instance.currentValue.getId());
 
                             DeleteValueOperation deleteValueOperation = new DeleteValueOperation(
-                                    Model.instance.account,
+                                    Model.instance.account.getOpeClientId(),
+                                    Model.instance.account.getMasterKey().getValue(),
                                     Model.instance.currentDatasource,
                                     Model.instance.currentStream,
                                     Model.instance.currentValue,
@@ -346,7 +347,8 @@ public class ValueFragment extends ListFragment implements Notifier {
                         }
 
                         CreateValueOperation createValueOperation = new CreateValueOperation(
-                                Model.instance.account,
+                                Model.instance.account.getOpeClientId(),
+                                Model.instance.account.getMasterKey().getValue(),
                                 Model.instance.currentDatasource,
                                 Model.instance.currentStream,
                                 newValue,
@@ -395,7 +397,11 @@ public class ValueFragment extends ListFragment implements Notifier {
                 tvLongitude = (TextView)mDialog.findViewById(R.id.longitude);
 
                 if (mLocationService != null) {
-                    mLocationService.setServiceParameters(Model.instance.account, Model.instance.currentDatasource, Model.instance.currentStream);
+                    mLocationService.setServiceParameters(
+                            Model.instance.account.getOpeClientId(),
+                            Model.instance.account.getMasterKey().getValue(),
+                            Model.instance.currentDatasource,
+                            Model.instance.currentStream);
                     mLocationService.register(this);
                     mLocationService.start();
                 }
@@ -465,7 +471,11 @@ public class ValueFragment extends ListFragment implements Notifier {
     private void getValues(int page, final boolean clearList) {
         String[] params = { String.format("%1$d", page) };
         GetValueOperation getValuesOperation =
-                new GetValueOperation(Model.instance.account, Model.instance.currentDatasource, Model.instance.currentStream,
+                new GetValueOperation(
+                        Model.instance.account.getOpeClientId(),
+                        Model.instance.account.getMasterKey().getValue(),
+                        Model.instance.currentDatasource,
+                        Model.instance.currentStream,
                         new OperationCallback() {
                             @Override
                             public void process(Object object, Exception exception) {

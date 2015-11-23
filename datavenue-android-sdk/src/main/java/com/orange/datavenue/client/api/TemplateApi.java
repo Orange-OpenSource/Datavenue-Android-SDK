@@ -94,7 +94,7 @@ public class TemplateApi {
 	 *             <li>Code 928 : Invalid input data (Empy field)</li>
 	 *             </ul>
 	 */
-	public Template updateTemplate(String templateId, Template body) throws SDKException, HTTPException {
+	public void updateTemplate(String templateId, Template body) throws SDKException, HTTPException {
 		Object postBody = body;
 		// verify required params are set
 		if (templateId == null) {
@@ -114,7 +114,6 @@ public class TemplateApi {
 		String contentType =  "application/json";
 
 		HttpResponse httpResponse = apiInvoker.invokeAPI(basePath, path, "PUT", queryParams, postBody, headerParams, formParams, contentType);
-		return (Template) ApiInvoker.deserialize(httpResponse.body, "", Template.class);
 	}
 
 	/**
@@ -129,7 +128,7 @@ public class TemplateApi {
 	 *             <li>Code 914 : Resource not fount</li>
 	 *             </ul>
 	 */
-	public Template deleteTemplate(String templateId) throws SDKException, HTTPException {
+	public void deleteTemplate(String templateId) throws SDKException, HTTPException {
 		Object postBody = null;
 		// verify required params are set
 		if (templateId == null) {
@@ -149,7 +148,6 @@ public class TemplateApi {
 		String contentType =  "application/json";
 
 		HttpResponse httpResponse = apiInvoker.invokeAPI(basePath, path, "DELETE", queryParams, postBody, headerParams, formParams, contentType);
-		return (Template) ApiInvoker.deserialize(httpResponse.body, "", Template.class);
 	}
 
 	/**

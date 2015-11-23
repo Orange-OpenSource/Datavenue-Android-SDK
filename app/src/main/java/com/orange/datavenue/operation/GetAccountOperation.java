@@ -25,32 +25,32 @@ public class GetAccountOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = GetAccountOperation.class.getSimpleName();
 
-    Config mConfigAccount;
+    String  mOpeClient = null;
+    String  mKey       = null;
+    String  mAccountId = null;
+    Account mAccount   = null;
 
-    String mIssPrimaryMasterKey = "";
-    String mOapiKey = "";
-    String mAccountId = "";
+    OperationCallback mCallback = null;
+    Exception         mException = null;
 
-    Account mAccount = null;
-    Exception mException = null;
-
-    OperationCallback mCallback;
-
-    public GetAccountOperation(String primaryKey, String oapiKey, String accountId, OperationCallback op) {
-        mIssPrimaryMasterKey = primaryKey;
-        mOapiKey = oapiKey;
+    /**
+     *
+     * @param opeClient
+     * @param key
+     * @param accountId
+     * @param op
+     */
+    public GetAccountOperation(String opeClient, String key, String accountId, OperationCallback op) {
+        mOpeClient = opeClient;
+        mKey       = key;
         mAccountId = accountId;
-        mCallback = op;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        mConfigAccount = new Config(mOapiKey, mIssPrimaryMasterKey);
+        mCallback  = op;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        AccountsApi accountsApi = new AccountsApi(mConfigAccount);
+        Config config = new Config(mOpeClient, mKey);
+        AccountsApi accountsApi = new AccountsApi(config);
 
         try {
             mAccount = accountsApi.getAccount(mAccountId);
@@ -67,7 +67,7 @@ public class GetAccountOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-                mCallback.process(mAccount, mException);
+            mCallback.process(mAccount, mException);
         }
     }
 }

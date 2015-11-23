@@ -28,26 +28,37 @@ public class DeleteValueOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = DeleteValueOperation.class.getSimpleName();
 
-    Account mAccount = null;
+    String     mOpeClient  = null;
+    String     mKey        = null;
     Datasource mDatasource = null;
-    Stream mStream = null;
-    Value mValue = null;
-    Exception mException = null;
+    Stream     mStream     = null;
+    Value      mValue      = null;
 
-    OperationCallback mCallback;
+    OperationCallback mCallback  = null;
+    Exception         mException = null;
 
-    public DeleteValueOperation(Account account, Datasource datasource, Stream stream, Value value, OperationCallback op) {
-        mAccount = account;
-        mCallback = op;
+    /**
+     *
+     * @param opeClient
+     * @param key
+     * @param datasource
+     * @param stream
+     * @param value
+     * @param op
+     */
+    public DeleteValueOperation(String opeClient, String key, Datasource datasource, Stream stream, Value value, OperationCallback op) {
+        mOpeClient  = opeClient;
+        mKey        = key;
+        mCallback   = op;
         mDatasource = datasource;
-        mStream = stream;
-        mValue = value;
+        mStream     = stream;
+        mValue      = value;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        Config datasourceConfig = new Config(mAccount.getOpeClientId(), mAccount.getMasterKey().getValue());
-        DatasourcesApi datasourceApi = new DatasourcesApi(datasourceConfig);
+        Config config = new Config(mOpeClient, mKey);
+        DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
             datasourceApi.deleteStreamValue(mDatasource.getId(), mStream.getId(), mValue.getId());
@@ -65,7 +76,7 @@ public class DeleteValueOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-                mCallback.process(mValue, mException);
+            mCallback.process(mValue, mException);
         }
     }
 }

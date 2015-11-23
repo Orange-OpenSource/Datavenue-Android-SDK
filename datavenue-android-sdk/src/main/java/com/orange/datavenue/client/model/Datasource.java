@@ -23,6 +23,9 @@ public class Datasource implements HasId {
 	/** Datasource serial number */
 	private String serial = null;
 
+	/** callback */
+	private Callback callback = null;
+
 	/** Group name list */
 	private List<String> group = null;
 
@@ -296,6 +299,22 @@ public class Datasource implements HasId {
 		this.updated = updated;
 	}
 
+	/**
+	 * Set the datasource callback
+	 * @param callback
+	 */
+	public void setCallback(Callback callback) {
+		this.callback = callback;
+	}
+
+	/**
+	 * Get datasource callback
+	 * @return
+	 */
+	public Callback getCallback() {
+		return this.callback;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -310,6 +329,7 @@ public class Datasource implements HasId {
 		sb.append("  streams: ").append(streams).append("\n");
 		sb.append("  apikeys: ").append(apikeys).append("\n");
 		sb.append("  id: ").append(id).append("\n");
+		sb.append("  callback: ").append(callback.getUrl()).append("\n");
 		sb.append("  created: ").append(created).append("\n");
 		sb.append("  updated: ").append(updated).append("\n");
 		sb.append("  status: ").append(status).append("\n");

@@ -9,6 +9,7 @@
 package com.orange.datavenue;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -55,9 +56,19 @@ public class LoginActivity extends AppCompatActivity {
             mPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
         }
 
+        Intent intent = getIntent();
+
+        String account = intent.hasExtra("account")?intent.getStringExtra("account"):"";
+        String ope = intent.hasExtra("ope")?intent.getStringExtra("ope"):"";
+        String key = intent.hasExtra("key")?intent.getStringExtra("key"):"";
+
         mOapiKey = (EditText)findViewById(R.id.oapi_key_value);
         mPrimaryMasterKey = (EditText)findViewById(R.id.primary_master_key_value);
         mAccountId = (EditText)findViewById(R.id.account_id_value);
+
+        mOapiKey.setText(ope);
+        mPrimaryMasterKey.setText(key);
+        mAccountId.setText(account);
 
         mLoginButton = (Button)findViewById(R.id.login_button);
         mCancelButton = (Button)findViewById(R.id.cancel_button);
@@ -70,7 +81,10 @@ public class LoginActivity extends AppCompatActivity {
                 String account = mAccountId.getText().toString().trim();
 
                 GetAccountOperation getAccountOperation =
-                        new GetAccountOperation(primaryMaster, oapi, account,
+                        new GetAccountOperation(
+                                oapi,
+                                primaryMaster,
+                                account,
                                 new OperationCallback() {
                                     @Override
                                     public void process(Object object, Exception exception) {
@@ -81,11 +95,11 @@ public class LoginActivity extends AppCompatActivity {
                                             Model.instance.account = account;
 
                                             Model.instance.oapiKey = mOapiKey.getText().toString().trim();
-                                            Model.instance.primaryMasterKey = mPrimaryMasterKey.getText().toString().trim();
+                                            Model.instance.key = mPrimaryMasterKey.getText().toString().trim();
                                             Model.instance.accountId = mAccountId.getText().toString().trim();
 
                                             editor.putString("OAPI_KEY", Model.instance.oapiKey);
-                                            editor.putString("PRIMARY_MASTER_KEY", Model.instance.primaryMasterKey);
+                                            editor.putString("PRIMARY_MASTER_KEY", Model.instance.key);
                                             editor.putString("ACCOUNT_ID", Model.instance.accountId);
                                             editor.putBoolean("LOGIN_VERIFIED", true);
                                             editor.commit();

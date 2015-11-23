@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.orange.datavenue.client.Config;
@@ -40,6 +41,8 @@ import com.orange.datavenue.model.Model;
 import com.orange.datavenue.operation.DeleteStreamOperation;
 import com.orange.datavenue.operation.GetStreamOperation;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +57,7 @@ public class StreamFragment extends ListFragment {
     private StreamAdapter mStreamAdapter;
     private List<Stream> mStreams = new ArrayList<Stream>();
 
-    private android.app.Dialog mDialog;
+    //private android.app.Dialog mDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -125,203 +128,24 @@ public class StreamFragment extends ListFragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_delete_stream:
-                    mDialog = new android.app.Dialog(getActivity());
-
-                    mDialog.setContentView(R.layout.delete_dialog);
-                    mDialog.setTitle(R.string.delete);
-
-                    TextView info = (TextView) mDialog.findViewById(R.id.info_label);
-                    info.setText(String.format(getString(R.string.delete_stream), Model.instance.currentStream.getId()));
-
-                    Button deleteButton = (Button) mDialog.findViewById(R.id.delete_button);
-
-                    deleteButton.setOnClickListener(new Button.OnClickListener() {
-
-                        @Override
-                        public void onClick(View view) {
-                            Log.d(TAG_NAME, "datasource : " + Model.instance.currentDatasource.getId());
-                            Log.d(TAG_NAME, "stream : " + Model.instance.currentStream.getId());
-
-                            DeleteStreamOperation deleteStreamOperation = new DeleteStreamOperation(
-                                    Model.instance.account,
-                                    Model.instance.currentDatasource,
-                                    Model.instance.currentStream,
-                                    new OperationCallback() {
-                                        @Override
-                                        public void process(Object object, Exception exception) {
-                                            if (exception == null) {
-                                                getStreams(); // reload
-                                            } else {
-                                                Errors.displayError(getActivity(), exception);
-                                            }
-                                        }
-                                    });
-
-                            deleteStreamOperation.execute("");
-
-                            mDialog.dismiss();
-                        }
-
-                    });
-
-                    Button cancelDeleteButton = (Button) mDialog.findViewById(R.id.cancel_button);
-                    cancelDeleteButton.setOnClickListener(new Button.OnClickListener() {
-
-                        @Override
-                        public void onClick(View arg0) {
-                            mDialog.dismiss();
-                        }
-                    });
-
-                    mDialog.setCancelable(false);
-                    mDialog.show();
+                    deleteStream();
                     mode.finish();
                     return true;
                 case R.id.action_share_stream:
                     Intent sendIntent = new Intent();
                     sendIntent.setAction(Intent.ACTION_SEND);
-                    String message = String.format("%1$s%2$s%3$s%4$s%5$s", Config.DEFAULT_BASE_URL, "/datasources/", Model.instance.currentDatasource.getId(), "/streams/", Model.instance.currentStream.getId());
-
+                    String message = String.format("%1$s%2$s%3$s%4$s%5$s",
+                            Config.DEFAULT_BASE_URL,
+                            "/datasources/",
+                            Model.instance.currentDatasource.getId(),
+                            "/streams/", Model.instance.currentStream.getId());
                     sendIntent.putExtra(Intent.EXTRA_TEXT, message);
                     sendIntent.setType("text/plain");
                     startActivity(sendIntent);
                     mode.finish();
                     return true;
                 case R.id.action_update_stream:
-                    mDialog = new android.app.Dialog(getActivity());
-
-                    mDialog.setContentView(R.layout.create_stream_dialog);
-                    mDialog.setTitle(R.string.update_stream);
-
-                    final EditText name = (EditText) mDialog.findViewById(R.id.name);
-                    final EditText description = (EditText) mDialog.findViewById(R.id.description);
-                    final EditText unit = (EditText) mDialog.findViewById(R.id.unit);
-                    final EditText symbol = (EditText) mDialog.findViewById(R.id.symbol);
-                    final EditText latitude = (EditText) mDialog.findViewById(R.id.latitude);
-                    final EditText longitude = (EditText) mDialog.findViewById(R.id.longitude);
-
-                    name.setText(Model.instance.currentStream.getName());
-                    description.setText(Model.instance.currentStream.getDescription());
-
-                    if (Model.instance.currentStream.getLocation() != null) {
-                        latitude.setText(Double.toString(Model.instance.currentStream.getLocation()[0]));
-                        longitude.setText(Double.toString(Model.instance.currentStream.getLocation()[1]));
-                    }
-
-                    if (Model.instance.currentStream.getUnit() != null) {
-                        if (Model.instance.currentStream.getUnit().getName() != null) {
-                            unit.setText(Model.instance.currentStream.getUnit().getName());
-                        }
-                        if (Model.instance.currentStream.getUnit().getSymbol() != null) {
-                            symbol.setText(Model.instance.currentStream.getUnit().getSymbol());
-                        }
-                    }
-
-                    Button updateButton = (Button) mDialog.findViewById(R.id.add_button);
-                    updateButton.setText(getString(R.string.update));
-                    updateButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Log.d(TAG_NAME, "name : " + name.getText().toString());
-                            Log.d(TAG_NAME, "description : " + description.getText().toString());
-
-                            Stream newStream = new Stream();
-
-                            /**
-                             * Fields with no value will be deleted !
-                             */
-                            newStream.setId(Model.instance.currentStream.getId());             // set the previous ID
-                            newStream.setMetadata(Model.instance.currentStream.getMetadata()); // set previous Metadata
-                            newStream.setUnit(Model.instance.currentStream.getUnit());         // set previous Unit
-                            newStream.setCallback(Model.instance.currentStream.getCallback()); // set the previous Callback
-
-                            newStream.setName(name.getText().toString());
-
-                            if ("".equals(description.getText().toString())) {
-                                newStream.setDescription(null);
-                            } else {
-                                newStream.setDescription(description.getText().toString());
-                            }
-
-                            /**
-                             * Allocate new Location
-                             */
-                            Double[] location = null;
-
-                            String strLatitude = latitude.getText().toString();
-                            String strLongitude = longitude.getText().toString();
-
-                            try {
-                                if ((!"".equals(strLatitude))&&(!"".equals(strLongitude))) {
-                                    location = new Double[2];
-                                    location[0] = Double.parseDouble(strLatitude);
-                                    location[1] = Double.parseDouble(strLongitude);
-                                }
-                            } catch(NumberFormatException e) {
-                                Log.e(TAG_NAME, e.toString());
-                                location = null;
-                            }
-
-                            newStream.setLocation(location);
-
-                            /**
-                             * Allocate new Unit
-                             */
-                            Unit newUnit = null;
-
-                            String strUnit = unit.getText().toString();
-                            String strSymbol = symbol.getText().toString();
-
-                            if (!"".equals(strUnit)) {
-                                if (newUnit == null) {
-                                    newUnit = new Unit();
-                                }
-                                newUnit.setName(strUnit);
-                            }
-
-                            if (!"".equals(strSymbol)) {
-                                if (newUnit == null) {
-                                    newUnit = new Unit();
-                                }
-                                newUnit.setSymbol(strSymbol);
-                            }
-
-                            if (newUnit != null) {
-                                newStream.setUnit(newUnit);
-                            }
-
-                            UpdateStreamOperation updateStreamOperation = new UpdateStreamOperation(
-                                    Model.instance.account,
-                                    Model.instance.currentDatasource,
-                                    newStream,
-                                    new OperationCallback() {
-                                        @Override
-                                        public void process(Object object, Exception exception) {
-                                            if (exception == null) {
-                                                getStreams();
-                                                Model.instance.currentStream = (Stream)object; // update current Stream
-                                            } else {
-                                                Errors.displayError(getActivity(), exception);
-                                            }
-                                        }
-                                    });
-
-                            updateStreamOperation.execute("");
-
-                            mDialog.dismiss();
-                        }
-                    });
-
-                    Button cancelUpdateButton = (Button) mDialog.findViewById(R.id.cancel_button);
-                    cancelUpdateButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            mDialog.dismiss();
-                        }
-                    });
-
-                    mDialog.setCancelable(false);
-                    mDialog.show();
+                    createOrUpdateStream(false);
                     mode.finish();
                     return true;
             }
@@ -331,7 +155,6 @@ public class StreamFragment extends ListFragment {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             Log.d(TAG_NAME, "onDestroyActionMode()");
-            //getListView().setItemChecked(mSelected, false);
             mActionMode = null;
         }
     };
@@ -358,112 +181,8 @@ public class StreamFragment extends ListFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add_stream:
-                mDialog = new android.app.Dialog(getActivity());
-
-                mDialog.setContentView(R.layout.create_stream_dialog);
-                mDialog.setTitle(R.string.add_stream);
-
-                final EditText name = (EditText) mDialog.findViewById(R.id.name);
-                final EditText description = (EditText) mDialog.findViewById(R.id.description);
-                final EditText unit = (EditText) mDialog.findViewById(R.id.unit);
-                final EditText symbol = (EditText) mDialog.findViewById(R.id.symbol);
-                final EditText latitude = (EditText) mDialog.findViewById(R.id.latitude);
-                final EditText longitude = (EditText) mDialog.findViewById(R.id.longitude);
-
-                Button addButton = (Button) mDialog.findViewById(R.id.add_button);
-                addButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Log.d(TAG_NAME, "name : " + name.getText().toString());
-                        Log.d(TAG_NAME, "description : " + description.getText().toString());
-
-                        Stream newStream = new Stream();
-                        newStream.setName(name.getText().toString());
-                        newStream.setDescription(description.getText().toString());
-
-                        /**
-                         * Allocate new Location
-                         */
-                        Double[] location = null;
-
-                        String strLatitude = latitude.getText().toString();
-                        String strLongitude = longitude.getText().toString();
-
-                        try {
-                            if ((!"".equals(strLatitude))&&(!"".equals(strLongitude))) {
-                                location = new Double[2];
-                                location[0] = Double.parseDouble(strLatitude);
-                                location[1] = Double.parseDouble(strLongitude);
-                            }
-                        } catch(NumberFormatException e) {
-                            Log.e(TAG_NAME, e.toString());
-                            location = null;
-                        }
-
-                        if (location != null) {
-                            newStream.setLocation(location);
-                        }
-                        /**************************************************************************/
-
-                        /**
-                         * Allocate new Unit
-                         */
-                        Unit newUnit = null;
-                        String strUnit = unit.getText().toString();
-                        String strSymbol = symbol.getText().toString();
-
-                        if (!"".equals(strUnit)) {
-                            if (newUnit == null) {
-                                newUnit = new Unit();
-                            }
-                            newUnit.setName(strUnit);
-                        }
-
-                        if (!"".equals(strSymbol)) {
-                            if (newUnit == null) {
-                                newUnit = new Unit();
-                            }
-                            newUnit.setSymbol(strSymbol);
-                        }
-
-                        if (newUnit != null) {
-                            newStream.setUnit(newUnit);
-                        }
-                        /**************************************************************************/
-
-                        CreateStreamOperation createStreamOperation = new CreateStreamOperation(
-                                Model.instance.account,
-                                Model.instance.currentDatasource,
-                                newStream,
-                                new OperationCallback() {
-                                    @Override
-                                    public void process(Object object, Exception exception) {
-                                        if (exception == null) {
-                                            getStreams();
-                                        } else {
-                                            Errors.displayError(getActivity(), exception);
-                                        }
-                                    }
-                                });
-
-                        createStreamOperation.execute("");
-
-                        mDialog.dismiss();
-                    }
-                });
-
-                Button cancelAddButton = (Button) mDialog.findViewById(R.id.cancel_button);
-                cancelAddButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        mDialog.dismiss();
-                    }
-                });
-
-                mDialog.setCancelable(false);
-                mDialog.show();
+                createOrUpdateStream(true);
                 return true;
-
             default:
                 break;
         }
@@ -490,7 +209,10 @@ public class StreamFragment extends ListFragment {
 
     private void getStreams() {
         GetStreamOperation getStreamOperation =
-                new GetStreamOperation(Model.instance.account, Model.instance.currentDatasource,
+                new GetStreamOperation(
+                        Model.instance.account.getOpeClientId(),
+                        Model.instance.account.getMasterKey().getValue(),
+                        Model.instance.currentDatasource,
                         new OperationCallback() {
 
                             @Override
@@ -516,5 +238,320 @@ public class StreamFragment extends ListFragment {
             mStreamAdapter.changeDataSet(Model.instance.streams);
             mStreamAdapter.notifyDataSetChanged();
         }
+    }
+
+    /**
+     *
+     */
+    private void deleteStream() {
+        final android.app.Dialog dialog = new android.app.Dialog(getActivity());
+
+        dialog.setContentView(R.layout.delete_dialog);
+        dialog.setTitle(R.string.delete);
+
+        TextView info = (TextView) dialog.findViewById(R.id.info_label);
+        info.setText(String.format(getString(R.string.delete_stream), Model.instance.currentStream.getId()));
+
+        Button deleteButton = (Button) dialog.findViewById(R.id.delete_button);
+
+        deleteButton.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG_NAME, "datasource : " + Model.instance.currentDatasource.getId());
+                Log.d(TAG_NAME, "stream : " + Model.instance.currentStream.getId());
+
+                DeleteStreamOperation deleteStreamOperation = new DeleteStreamOperation(
+                        Model.instance.account.getOpeClientId(),
+                        Model.instance.account.getMasterKey().getValue(),
+                        Model.instance.currentDatasource,
+                        Model.instance.currentStream,
+                        new OperationCallback() {
+                            @Override
+                            public void process(Object object, Exception exception) {
+                                if (exception == null) {
+                                    getStreams(); // reload
+                                } else {
+                                    Errors.displayError(getActivity(), exception);
+                                }
+                            }
+                        });
+
+                deleteStreamOperation.execute("");
+
+                dialog.dismiss();
+            }
+
+        });
+
+        Button cancelDeleteButton = (Button) dialog.findViewById(R.id.cancel_button);
+        cancelDeleteButton.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+
+    /**
+     *
+     * @param isCreate
+     */
+    private void createOrUpdateStream(final boolean isCreate) {
+        final android.app.Dialog dialog = new android.app.Dialog(getActivity());
+
+        dialog.setContentView(R.layout.create_stream_dialog);
+
+        if (isCreate) {
+            dialog.setTitle(R.string.add_stream);
+        } else {
+            dialog.setTitle(R.string.update_stream);
+        }
+
+        final LinearLayout callbackLayout = (LinearLayout) dialog.findViewById(R.id.callback_layout);
+        final EditText name = (EditText) dialog.findViewById(R.id.name);
+        final EditText description = (EditText) dialog.findViewById(R.id.description);
+        final EditText unit = (EditText) dialog.findViewById(R.id.unit);
+        final EditText symbol = (EditText) dialog.findViewById(R.id.symbol);
+        final EditText callback = (EditText) dialog.findViewById(R.id.callback);
+        final EditText latitude = (EditText) dialog.findViewById(R.id.latitude);
+        final EditText longitude = (EditText) dialog.findViewById(R.id.longitude);
+
+        Button actionButton = (Button) dialog.findViewById(R.id.add_button);
+
+        if (!isCreate) {
+            callbackLayout.setVisibility(View.GONE);
+            actionButton.setText(getString(R.string.update));
+
+            /**
+             * Set fields with current data
+             */
+            name.setText(Model.instance.currentStream.getName());
+            description.setText(Model.instance.currentStream.getDescription());
+
+            if (Model.instance.currentStream.getLocation() != null) {
+                latitude.setText(Double.toString(Model.instance.currentStream.getLocation()[0]));
+                longitude.setText(Double.toString(Model.instance.currentStream.getLocation()[1]));
+            }
+
+            if (Model.instance.currentStream.getUnit() != null) {
+                if (Model.instance.currentStream.getUnit().getName() != null) {
+                    unit.setText(Model.instance.currentStream.getUnit().getName());
+                }
+                if (Model.instance.currentStream.getUnit().getSymbol() != null) {
+                    symbol.setText(Model.instance.currentStream.getUnit().getSymbol());
+                }
+            }
+        }
+
+        actionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG_NAME, "name : " + name.getText().toString());
+                Log.d(TAG_NAME, "description : " + description.getText().toString());
+                Log.d(TAG_NAME, "unit : " + unit.getText().toString());
+                Log.d(TAG_NAME, "symbol : " + symbol.getText().toString());
+
+                Stream newStream = new Stream();
+
+                if (isCreate) {
+                    newStream.setName(name.getText().toString());
+                    newStream.setDescription(description.getText().toString());
+
+                    /**
+                     * Allocate new Location
+                     */
+                    Double[] location = null;
+
+                    String strLatitude = latitude.getText().toString();
+                    String strLongitude = longitude.getText().toString();
+
+                    try {
+                        if ((!"".equals(strLatitude)) && (!"".equals(strLongitude))) {
+                            location = new Double[2];
+                            location[0] = Double.parseDouble(strLatitude);
+                            location[1] = Double.parseDouble(strLongitude);
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG_NAME, e.toString());
+                        location = null;
+                    }
+
+                    if (location != null) {
+                        newStream.setLocation(location);
+                    }
+                    /**************************************************************************/
+
+                    /**
+                     * Allocate new Unit & Symbol
+                     */
+                    Unit newUnit = null;
+                    String strUnit = unit.getText().toString();
+                    String strSymbol = symbol.getText().toString();
+
+                    if (!"".equals(strUnit)) {
+                        if (newUnit == null) {
+                            newUnit = new Unit();
+                        }
+                        newUnit.setName(strUnit);
+                    }
+
+                    if (!"".equals(strSymbol)) {
+                        if (newUnit == null) {
+                            newUnit = new Unit();
+                        }
+                        newUnit.setSymbol(strSymbol);
+                    }
+
+                    if (newUnit != null) {
+                        newStream.setUnit(newUnit);
+                    }
+
+                    /**
+                     * Allocate new Callback
+                     */
+                    Callback newCallback = null;
+                    String callbackUrl = callback.getText().toString();
+
+                    if (!"".equals(callbackUrl)) {
+                        try {
+                            URL url = new URL(callbackUrl);
+                            newCallback = new Callback();
+                            newCallback.setUrl(url.toString());
+                            newCallback.setName("Callback");
+                            newCallback.setDescription("application callback");
+                            newCallback.setStatus("activated");
+                        } catch (MalformedURLException e) {
+                            Log.e(TAG_NAME, e.toString());
+                            callback.setText("");
+                        }
+                    }
+
+                    if (newCallback != null) {
+                        newStream.setCallback(newCallback);
+                    }
+
+                    /**************************************************************************/
+
+                    CreateStreamOperation createStreamOperation = new CreateStreamOperation(
+                            Model.instance.account.getOpeClientId(),
+                            Model.instance.account.getMasterKey().getValue(),
+                            Model.instance.currentDatasource,
+                            newStream,
+                            new OperationCallback() {
+                                @Override
+                                public void process(Object object, Exception exception) {
+                                    if (exception == null) {
+                                        getStreams();
+                                    } else {
+                                        Errors.displayError(getActivity(), exception);
+                                    }
+                                }
+                            });
+
+                    createStreamOperation.execute("");
+
+                    dialog.dismiss();
+                } else {
+                    /**
+                     * Fields with no value will be deleted !
+                     */
+                    newStream.setId(Model.instance.currentStream.getId());             // set the previous ID
+                    newStream.setMetadata(Model.instance.currentStream.getMetadata()); // set previous Metadata
+                    newStream.setUnit(Model.instance.currentStream.getUnit());         // set previous Unit
+
+                    newStream.setName(name.getText().toString());
+
+                    if ("".equals(description.getText().toString())) {
+                        newStream.setDescription(null);
+                    } else {
+                        newStream.setDescription(description.getText().toString());
+                    }
+
+                    /**
+                     * Allocate new Location
+                     */
+                    Double[] location = null;
+
+                    String strLatitude = latitude.getText().toString();
+                    String strLongitude = longitude.getText().toString();
+
+                    try {
+                        if ((!"".equals(strLatitude))&&(!"".equals(strLongitude))) {
+                            location = new Double[2];
+                            location[0] = Double.parseDouble(strLatitude);
+                            location[1] = Double.parseDouble(strLongitude);
+                        }
+                    } catch(NumberFormatException e) {
+                        Log.e(TAG_NAME, e.toString());
+                        location = null;
+                    }
+
+                    newStream.setLocation(location);
+
+                    /**
+                     * Allocate new Unit
+                     */
+                    Unit newUnit = null;
+
+                    String strUnit = unit.getText().toString();
+                    String strSymbol = symbol.getText().toString();
+
+                    if (!"".equals(strUnit)) {
+                        if (newUnit == null) {
+                            newUnit = new Unit();
+                        }
+                        newUnit.setName(strUnit);
+                    }
+
+                    if (!"".equals(strSymbol)) {
+                        if (newUnit == null) {
+                            newUnit = new Unit();
+                        }
+                        newUnit.setSymbol(strSymbol);
+                    }
+
+                    if (newUnit != null) {
+                        newStream.setUnit(newUnit);
+                    }
+
+                    UpdateStreamOperation updateStreamOperation = new UpdateStreamOperation(
+                            Model.instance.account.getOpeClientId(),
+                            Model.instance.account.getMasterKey().getValue(),
+                            Model.instance.currentDatasource,
+                            newStream,
+                            new OperationCallback() {
+                                @Override
+                                public void process(Object object, Exception exception) {
+                                    if (exception == null) {
+                                        getStreams();
+                                        Model.instance.currentStream = (Stream)object; // update current Stream
+                                    } else {
+                                        Errors.displayError(getActivity(), exception);
+                                    }
+                                }
+                            });
+
+                    updateStreamOperation.execute("");
+
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        Button cancelButton = (Button) dialog.findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setCancelable(false);
+        dialog.show();
     }
 }

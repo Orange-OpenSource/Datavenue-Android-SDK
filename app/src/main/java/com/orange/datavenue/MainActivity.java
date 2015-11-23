@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -28,6 +29,8 @@ import com.orange.datavenue.client.model.AccountsUpdate;
 import com.orange.datavenue.model.Model;
 import com.orange.datavenue.operation.GetAccountOperation;
 import com.orange.datavenue.operation.UpdateAccountOperation;
+
+import java.util.List;
 
 /**
  * @author Stéphane SANDON
@@ -63,6 +66,55 @@ public class MainActivity extends AppCompatActivity {
 
         Model.instance.reset();
 
+        Intent receivedIntent = getIntent();
+        Uri uri = receivedIntent.getData();
+
+        String intentAccountId = "";
+        String intentDatasourceId = "";
+        String intentStreamId = "";
+        String intentOpe = "";
+        String intentKey = "";
+
+        if (uri != null) {
+            Log.d(TAG_NAME, "Intent received !");
+            Log.d(TAG_NAME, "uri=" + uri.toString());
+            intentOpe = uri.getQueryParameter("ope");
+            intentKey = uri.getQueryParameter("key");
+
+            Model.instance.oapiKey = intentOpe;
+            Model.instance.key = intentKey;
+
+            List<String> segments = uri.getPathSegments();
+            boolean isAccount = false;
+            boolean isDataSource = false;
+            boolean isStream = false;
+
+            for (String segment: segments) {
+                if ("accounts".equals(segment)) {
+                    isAccount = true;
+                } else if ("datasources".equals(segment)) {
+                    isDataSource = true;
+                } else if ("streams".equals(segment)) {
+                    isStream = true;
+                } else {
+                    if (isAccount) {
+                        intentAccountId = segment;
+                        isAccount = false;
+                    } else if (isDataSource) {
+                        intentDatasourceId = segment;
+                        isDataSource = false;
+                    } else if (isStream) {
+                        intentStreamId = segment;
+                        isStream = false;
+                    }
+                }
+            }
+
+            Log.d(TAG_NAME, "accountId=" + intentAccountId);
+            Log.d(TAG_NAME, "datasourceId=" + intentDatasourceId);
+            Log.d(TAG_NAME, "streamId=" + intentStreamId);
+        }
+
         if (mPreferences == null) {
             mPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
         }
@@ -80,11 +132,20 @@ public class MainActivity extends AppCompatActivity {
         mDatasourcesButton = (Button) findViewById(R.id.datasources);
 
         // if not already logged
-        if (! mPreferences.getBoolean("LOGIN_VERIFIED", false)) {
+        if ( (!mPreferences.getBoolean("LOGIN_VERIFIED", false)) ||
+                ((!"".equals(intentAccountId))&&(!"".equals(intentOpe))&&(!"".equals(intentKey))) ) {
+
                 Intent intent = new Intent(this, LoginActivity.class);
+                intent.putExtra("account", intentAccountId);
+                intent.putExtra("ope", intentOpe);
+                intent.putExtra("key", intentKey);
+
                 startActivityForResult(intent, 100);
         } else {
-            getAccount();
+            String oapiKey = mPreferences.getString("OAPI_KEY", "");
+            String primaryMasterKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
+            String accountId = mPreferences.getString("ACCOUNT_ID", "");
+            getAccount(oapiKey, primaryMasterKey, accountId);
         }
 
         mUpdateButton.setOnClickListener(new View.OnClickListener() {
@@ -134,7 +195,11 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     Log.d(TAG_NAME, "accountsUpdate : " + accountsUpdate.toString());
-                    updateAccount(accountsUpdate);
+                    String oapiKey = mPreferences.getString("OAPI_KEY", "");
+                    String primaryMasterKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
+                    String accountId = mPreferences.getString("ACCOUNT_ID", "");
+
+                    updateAccount(accountsUpdate, oapiKey, primaryMasterKey, accountId);
                 }
             }
         });
@@ -169,6 +234,9 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_logout) {
             SharedPreferences.Editor editor = mPreferences.edit();
             editor.putBoolean("LOGIN_VERIFIED", false);
+            editor.putString("OAPI_KEY", "");
+            editor.putString("PRIMARY_MASTER_KEY", "");
+            editor.putString("ACCOUNT_ID", "");
             editor.commit();
             Model.instance.reset();
             finish();
@@ -183,21 +251,24 @@ public class MainActivity extends AppCompatActivity {
         // we came from login screen
         if (requestCode == 100) {
             if (resultCode == 0) {
-                getAccount();
+                String oapiKey = mPreferences.getString("OAPI_KEY", "");
+                String primaryMasterKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
+                String accountId = mPreferences.getString("ACCOUNT_ID", "");
+                getAccount(oapiKey, primaryMasterKey, accountId);
             } else {
                 finish();
             }
         }
     }
 
-    private void getAccount() {
+    private void getAccount(String oapiKey, String primaryMasterKey, String accountId) {
         String[] params = { "" };
-        String oapiKey = mPreferences.getString("OAPI_KEY", "");
-        String primaryKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
-        String accountId = mPreferences.getString("ACCOUNT_ID", "");
 
         GetAccountOperation getAccountOperation =
-                new GetAccountOperation(primaryKey, oapiKey, accountId,
+                new GetAccountOperation(
+                        oapiKey,
+                        primaryMasterKey,
+                        accountId,
                         new OperationCallback() {
                             @Override
                             public void process(Object object, Exception exception) {
@@ -222,14 +293,14 @@ public class MainActivity extends AppCompatActivity {
         getAccountOperation.execute(params);
     }
 
-    private void updateAccount(AccountsUpdate accountsUpdate) {
+    private void updateAccount(AccountsUpdate accountsUpdate, String oapiKey, String primaryMasterKey, String accountId) {
         String[] params = { "" };
-        String oapiKey = mPreferences.getString("OAPI_KEY", "");
-        String primaryKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
-        String accountId = mPreferences.getString("ACCOUNT_ID", "");
 
         UpdateAccountOperation updateAccountOperation =
-                new UpdateAccountOperation(primaryKey, oapiKey, accountId, accountsUpdate,
+                new UpdateAccountOperation(
+                        oapiKey,
+                        primaryMasterKey,
+                        accountId, accountsUpdate,
                         new OperationCallback() {
                             @Override
                             public void process(Object object, Exception exception) {

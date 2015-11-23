@@ -27,24 +27,34 @@ public class UpdateStreamOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = UpdateStreamOperation.class.getSimpleName();
 
-    Account mAccount = null;
+    String     mOpeClient  = null;
+    String     mKey        = null;
     Datasource mDatasource = null;
-    Stream mStream = null;
-    Exception mException = null;
+    Stream     mStream     = null;
 
-    OperationCallback mCallback;
+    OperationCallback mCallback  = null;
+    Exception         mException = null;
 
-    public UpdateStreamOperation(Account account, Datasource datasource, Stream stream, OperationCallback op) {
-        mAccount = account;
-        mCallback = op;
+    /**
+     *
+     * @param opeClient
+     * @param key
+     * @param datasource
+     * @param stream
+     * @param op
+     */
+    public UpdateStreamOperation(String opeClient, String key, Datasource datasource, Stream stream, OperationCallback op) {
+        mOpeClient  = opeClient;
+        mKey        = key;
+        mCallback   = op;
         mDatasource = datasource;
-        mStream = stream;
+        mStream     = stream;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        Config datasourceConfig = new Config(mAccount.getOpeClientId(), mAccount.getMasterKey().getValue());
-        DatasourcesApi datasourceApi = new DatasourcesApi(datasourceConfig);
+        Config config = new Config(mOpeClient, mKey);
+        DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
             datasourceApi.updateStream(mDatasource.getId(), mStream.getId(), mStream);
@@ -62,7 +72,7 @@ public class UpdateStreamOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-                mCallback.process(mStream, mException);
+            mCallback.process(mStream, mException);
         }
     }
 }

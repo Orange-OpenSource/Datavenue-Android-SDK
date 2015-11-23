@@ -27,33 +27,35 @@ public class UpdateAccountOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = UpdateAccountOperation.class.getSimpleName();
 
-    Config mConfigAccount;
+    String  mOpeClient = null;
+    String  mKey       = null;
+    String  mAccountId = null;
+    Account mAccount   = null;
+    AccountsUpdate mAccountUpdate = null;
 
-    String mIssPrimaryMasterKey = "";
-    String mOapiKey = "";
-    String mAccountId = "";
-    Account mAccount;
-    Exception mException = null;
-    AccountsUpdate mAccountUpdate;
+    OperationCallback mCallback  = null;
+    Exception         mException = null;
 
-    OperationCallback mCallback;
-
-    public UpdateAccountOperation(String primaryKey, String oapiKey, String accountId, AccountsUpdate accountUpdate, OperationCallback op) {
-        mIssPrimaryMasterKey = primaryKey;
-        mOapiKey = oapiKey;
-        mAccountId = accountId;
+    /**
+     *
+     * @param opeClient
+     * @param key
+     * @param accountId
+     * @param accountUpdate
+     * @param op
+     */
+    public UpdateAccountOperation(String opeClient, String key, String accountId, AccountsUpdate accountUpdate, OperationCallback op) {
+        mOpeClient     = opeClient;
+        mKey           = key;
+        mAccountId     = accountId;
         mAccountUpdate = accountUpdate;
-        mCallback = op;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        mConfigAccount = new Config(mOapiKey, mIssPrimaryMasterKey);
+        mCallback      = op;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        AccountsApi accountsApi = new AccountsApi(mConfigAccount);
+        Config config = new Config(mOpeClient, mKey);
+        AccountsApi accountsApi = new AccountsApi(config);
 
         try {
             accountsApi.updateAccount(mAccountId, mAccountUpdate);

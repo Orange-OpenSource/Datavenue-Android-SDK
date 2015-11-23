@@ -24,6 +24,7 @@ import com.orange.datavenue.client.model.Account;
 import com.orange.datavenue.client.model.Datasource;
 import com.orange.datavenue.client.model.Stream;
 import com.orange.datavenue.client.model.Value;
+import com.orange.datavenue.model.Model;
 import com.orange.datavenue.operation.CreateValueOperation;
 
 import org.json.simple.JSONObject;
@@ -44,7 +45,8 @@ public class LocationService extends Service {
     private LocationListener mGpsListener;
     private LocationListener mNetworkListener;
 
-    private Account mAccount;
+    String     mOpeClient         = null;
+    String     mKey               = null;
     private Datasource mDatasource;
     private Stream mStream;
     private Value mValue;
@@ -125,10 +127,11 @@ public class LocationService extends Service {
         return START_STICKY;
     }
 
-    public void setServiceParameters(Account account, Datasource datasource, Stream stream) {
-        mAccount = account;
+    public void setServiceParameters(String opeClient, String key, Datasource datasource, Stream stream) {
+        mOpeClient  = opeClient;
+        mKey        = key;
         mDatasource = datasource;
-        mStream = stream;
+        mStream     = stream;
     }
 
     private class MyLocationListener implements LocationListener {
@@ -194,7 +197,11 @@ public class LocationService extends Service {
             mValue = newValue;
 
             CreateValueOperation createValueOperation =
-                    new CreateValueOperation(mAccount, mDatasource, mStream, newValue,
+                    new CreateValueOperation(
+                            mOpeClient,
+                            mKey,
+                            mDatasource,
+                            mStream, newValue,
                             new OperationCallback() {
 
                             @Override

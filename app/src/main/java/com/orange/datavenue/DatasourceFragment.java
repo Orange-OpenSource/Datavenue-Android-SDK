@@ -24,9 +24,11 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.orange.datavenue.adapter.DatasourceAdapter;
+import com.orange.datavenue.client.model.Callback;
 import com.orange.datavenue.client.model.Datasource;
 import com.orange.datavenue.client.model.Page;
 import com.orange.datavenue.model.Model;
@@ -36,6 +38,8 @@ import com.orange.datavenue.operation.GetDatasourceOperation;
 import com.orange.datavenue.operation.UpdateDatasourceOperation;
 import com.orange.datavenue.utils.Errors;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +52,6 @@ public class DatasourceFragment extends ListFragment {
 
     private DatasourceAdapter mDatasourceAdapter;
     private List<Datasource> mDatasources = new ArrayList<Datasource>();
-    private android.app.Dialog mDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -113,149 +116,11 @@ public class DatasourceFragment extends ListFragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_delete_datasource:
-                    mDialog = new android.app.Dialog(getActivity());
-
-                    mDialog.setContentView(R.layout.delete_dialog);
-                    mDialog.setTitle(R.string.delete);
-
-                    TextView info = (TextView) mDialog.findViewById(R.id.info_label);
-                    info.setText(String.format(getString(R.string.delete_datasource), Model.instance.currentDatasource.getId()));
-
-                    Button deleteButton = (Button) mDialog.findViewById(R.id.delete_button);
-
-                    deleteButton.setOnClickListener(new Button.OnClickListener() {
-
-                        @Override
-                        public void onClick(View view) {
-                            Log.d(TAG_NAME, "datasource : " + Model.instance.currentDatasource.getId());
-
-                            DeleteDatasourceOperation deleteDatasourceOperation = new DeleteDatasourceOperation(
-                                    Model.instance.account,
-                                    Model.instance.currentDatasource,
-                                    new OperationCallback() {
-                                        @Override
-                                        public void process(Object object, Exception exception) {
-                                            if (exception == null) {
-                                                getDatasources(); // reload
-                                            } else {
-                                                Errors.displayError(getActivity(), exception);
-                                            }
-                                        }
-                                    });
-
-                            deleteDatasourceOperation.execute("");
-
-                            mDialog.dismiss();
-                        }
-
-                    });
-
-                    Button cancelDeleteButton = (Button) mDialog.findViewById(R.id.cancel_button);
-                    cancelDeleteButton.setOnClickListener(new Button.OnClickListener() {
-
-                        @Override
-                        public void onClick(View arg0) {
-                            mDialog.dismiss();
-                        }
-                    });
-
-                    mDialog.setCancelable(false);
-                    mDialog.show();
+                    deleteDatasource();
                     mode.finish();
                     return true;
                 case R.id.action_update_datasource:
-                    mDialog = new android.app.Dialog(getActivity());
-
-                    mDialog.setContentView(R.layout.create_datasource_dialog);
-                    mDialog.setTitle(R.string.update_datasource);
-
-                    final EditText name = (EditText) mDialog.findViewById(R.id.name);
-                    final EditText description = (EditText) mDialog.findViewById(R.id.description);
-                    final EditText serial = (EditText) mDialog.findViewById(R.id.serial);
-                    final CheckBox status = (CheckBox) mDialog.findViewById(R.id.status);
-
-                    name.setText(Model.instance.currentDatasource.getName());
-                    description.setText(Model.instance.currentDatasource.getDescription());
-                    serial.setText(Model.instance.currentDatasource.getSerial());
-
-                    if ("activated".equals(Model.instance.currentDatasource.getStatus())) {
-                        status.setChecked(true);
-                    } else if ("deactivated".equals(Model.instance.currentDatasource.getStatus())) {
-                        status.setChecked(false);
-                    }
-
-                    Button updateButton = (Button) mDialog.findViewById(R.id.add_button);
-                    updateButton.setText(getString(R.string.update));
-
-                    updateButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Log.d(TAG_NAME, "name : " + name.getText().toString());
-                            Log.d(TAG_NAME, "description : " + description.getText().toString());
-                            Log.d(TAG_NAME, "serial : " + serial.getText().toString());
-                            Log.d(TAG_NAME, "status : " + status.isChecked());
-
-                            Datasource newDatasource = new Datasource();
-
-                            /**
-                             * Fields with no value will be deleted !
-                             */
-                            newDatasource.setId(Model.instance.currentDatasource.getId());              // set the previous ID
-                            newDatasource.setMetadata(Model.instance.currentDatasource.getMetadata());  // set the previous Metadata
-                            newDatasource.setGroup(Model.instance.currentDatasource.getGroup());        // set the previous Group
-                            newDatasource.setTemplate(Model.instance.currentDatasource.getTemplate());  // set the previous Template
-
-                            newDatasource.setName(name.getText().toString());
-
-                            if ("".equals(description.getText().toString())) {
-                                newDatasource.setDescription(null);
-                            } else {
-                                newDatasource.setDescription(description.getText().toString());
-                            }
-
-                            if ("".equals(serial.getText().toString())) {
-                                newDatasource.setSerial(null);
-                            } else {
-                                newDatasource.setSerial(serial.getText().toString());
-                            }
-
-                            if (status.isChecked()) {
-                                newDatasource.setStatus("activated");
-                            } else {
-                                newDatasource.setStatus("deactivated");
-                            }
-
-                            UpdateDatasourceOperation updateDatasourceOperation = new UpdateDatasourceOperation(
-                                    Model.instance.account,
-                                    newDatasource,
-                                    new OperationCallback() {
-                                        @Override
-                                        public void process(Object object, Exception exception) {
-                                            if (exception == null) {
-                                                getDatasources();
-                                                Model.instance.currentDatasource = (Datasource)object; // update current Datasource
-                                            } else {
-                                                Errors.displayError(getActivity(), exception);
-                                            }
-                                        }
-                                    });
-
-                            updateDatasourceOperation.execute("");
-
-                            mDialog.dismiss();
-                        }
-                    });
-
-                    Button cancelUpdateButton = (Button) mDialog.findViewById(R.id.cancel_button);
-                    cancelUpdateButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            mDialog.dismiss();
-                        }
-                    });
-
-                    mDialog.setCancelable(false);
-                    mDialog.show();
+                    createOrUpdateDatasource(false);
                     mode.finish();
                     return true;
             }
@@ -268,7 +133,6 @@ public class DatasourceFragment extends ListFragment {
             mActionMode = null;
         }
     };
-
 
     private void setTitle(int num, int total) {
         if (getActivity() != null) {
@@ -286,67 +150,7 @@ public class DatasourceFragment extends ListFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add_datasource:
-                final android.app.Dialog dialog = new android.app.Dialog(getActivity());
-
-                dialog.setContentView(R.layout.create_datasource_dialog);
-                dialog.setTitle(R.string.add_datasource);
-
-                final EditText name = (EditText) dialog.findViewById(R.id.name);
-                final EditText description = (EditText) dialog.findViewById(R.id.description);
-                final EditText serial = (EditText) dialog.findViewById(R.id.serial);
-                final CheckBox status = (CheckBox) dialog.findViewById(R.id.status);
-
-                status.setChecked(true);
-
-                Button addButton = (Button) dialog.findViewById(R.id.add_button);
-                addButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Log.d(TAG_NAME, "name : " + name.getText().toString());
-                        Log.d(TAG_NAME, "description : " + description.getText().toString());
-
-                        Datasource newDatasource = new Datasource();
-                        newDatasource.setName(name.getText().toString());
-                        newDatasource.setDescription(description.getText().toString());
-                        newDatasource.setSerial(serial.getText().toString());
-
-                        if (status.isChecked()) {
-                            newDatasource.setStatus("activated");
-                        } else {
-                            newDatasource.setStatus("deactivated");
-                        }
-
-
-                        CreateDatasourceOperation createDatasourceOperation = new CreateDatasourceOperation(
-                                Model.instance.account,
-                                newDatasource,
-                                new OperationCallback() {
-                                    @Override
-                                    public void process(Object object, Exception exception) {
-                                        if (exception == null) {
-                                            getDatasources();
-                                        } else {
-                                            Errors.displayError(getActivity(), exception);
-                                        }
-                                    }
-                                });
-
-                        createDatasourceOperation.execute("");
-
-                        dialog.dismiss();
-                    }
-                });
-
-                Button cancelButton = (Button) dialog.findViewById(R.id.cancel_button);
-                cancelButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        dialog.dismiss();
-                    }
-                });
-
-                dialog.setCancelable(false);
-                dialog.show();
+                createOrUpdateDatasource(true);
                 return true;
             default:
                 break;
@@ -373,8 +177,13 @@ public class DatasourceFragment extends ListFragment {
         Log.d(TAG_NAME, "onStop()");
     }
 
+    /**
+     *
+     */
     private void getDatasources() {
-        GetDatasourceOperation getDatasourceOperation = new GetDatasourceOperation(Model.instance.account,
+        GetDatasourceOperation getDatasourceOperation = new GetDatasourceOperation(
+                Model.instance.account.getOpeClientId(),
+                Model.instance.account.getMasterKey().getValue(),
                         new OperationCallback() {
                             @Override
                             public void process(Object object, Exception exception) {
@@ -393,12 +202,232 @@ public class DatasourceFragment extends ListFragment {
         getDatasourceOperation.execute();
     }
 
-    public void updateAdapter() {
+    /**
+     *
+     */
+    private void updateAdapter() {
         Log.d(TAG_NAME, "updateAdapter()");
 
         if (mDatasourceAdapter != null) {
             mDatasourceAdapter.changeDataSet(Model.instance.datasources);
         }
+    }
 
+    /**
+     *
+     */
+    private void deleteDatasource() {
+        final android.app.Dialog dialog = new android.app.Dialog(getActivity());
+
+        dialog.setContentView(R.layout.delete_dialog);
+        dialog.setTitle(R.string.delete);
+
+        TextView info = (TextView) dialog.findViewById(R.id.info_label);
+        info.setText(String.format(getString(R.string.delete_datasource), Model.instance.currentDatasource.getId()));
+
+        Button deleteButton = (Button) dialog.findViewById(R.id.delete_button);
+        deleteButton.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG_NAME, "datasource : " + Model.instance.currentDatasource.getId());
+
+                DeleteDatasourceOperation deleteDatasourceOperation = new DeleteDatasourceOperation(
+                        Model.instance.account.getOpeClientId(),
+                        Model.instance.account.getMasterKey().getValue(),
+                        Model.instance.currentDatasource,
+                        new OperationCallback() {
+                            @Override
+                            public void process(Object object, Exception exception) {
+                                if (exception == null) {
+                                    getDatasources(); // reload
+                                } else {
+                                    Errors.displayError(getActivity(), exception);
+                                }
+                            }
+                        });
+
+                deleteDatasourceOperation.execute("");
+
+                dialog.dismiss();
+            }
+
+        });
+
+        Button cancelDeleteButton = (Button) dialog.findViewById(R.id.cancel_button);
+        cancelDeleteButton.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+
+    /**
+     *
+     * @param isCreate
+     */
+    private void createOrUpdateDatasource(final boolean isCreate) {
+        final android.app.Dialog dialog = new android.app.Dialog(getActivity());
+
+        dialog.setContentView(R.layout.create_datasource_dialog);
+
+        if (isCreate) {
+            dialog.setTitle(R.string.add_datasource);
+        } else {
+            dialog.setTitle(R.string.update_datasource);
+        }
+
+        final LinearLayout callbackLayout = (LinearLayout) dialog.findViewById(R.id.callback_layout);
+        final EditText name = (EditText) dialog.findViewById(R.id.name);
+        final EditText description = (EditText) dialog.findViewById(R.id.description);
+        final EditText serial = (EditText) dialog.findViewById(R.id.serial);
+        final EditText callback = (EditText) dialog.findViewById(R.id.callback);
+        final CheckBox status = (CheckBox) dialog.findViewById(R.id.status);
+
+        status.setChecked(true); // by default status is activated
+
+        Button actionButton = (Button) dialog.findViewById(R.id.add_button);
+
+        if (!isCreate) {
+            callbackLayout.setVisibility(View.GONE);
+            actionButton.setText(getString(R.string.update));
+
+            /**
+             * Set fields with current data
+             */
+            name.setText(Model.instance.currentDatasource.getName());
+            description.setText(Model.instance.currentDatasource.getDescription());
+            serial.setText(Model.instance.currentDatasource.getSerial());
+
+            if ("activated".equals(Model.instance.currentDatasource.getStatus())) {
+                status.setChecked(true);
+            } else if ("deactivated".equals(Model.instance.currentDatasource.getStatus())) {
+                status.setChecked(false);
+            }
+        }
+
+        actionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG_NAME, "name : " + name.getText().toString());
+                Log.d(TAG_NAME, "description : " + description.getText().toString());
+                Log.d(TAG_NAME, "serial : " + serial.getText().toString());
+                Log.d(TAG_NAME, "status : " + status.isChecked());
+
+                Datasource newDatasource = new Datasource();
+
+                if (!isCreate) {
+                    /**
+                     * update fields with no value will be deleted !
+                     */
+                    newDatasource.setId(Model.instance.currentDatasource.getId());              // set the previous ID
+                    newDatasource.setMetadata(Model.instance.currentDatasource.getMetadata());  // set the previous Metadata
+                    newDatasource.setGroup(Model.instance.currentDatasource.getGroup());        // set the previous Group
+                    newDatasource.setTemplate(Model.instance.currentDatasource.getTemplate());  // set the previous Template
+                    newDatasource.setName(name.getText().toString());
+
+                    if ("".equals(description.getText().toString())) {
+                        newDatasource.setDescription(null);
+                    } else {
+                        newDatasource.setDescription(description.getText().toString());
+                    }
+
+                    if ("".equals(serial.getText().toString())) {
+                        newDatasource.setSerial(null);
+                    } else {
+                        newDatasource.setSerial(serial.getText().toString());
+                    }
+
+                    if (status.isChecked()) {
+                        newDatasource.setStatus("activated");
+                    } else {
+                        newDatasource.setStatus("deactivated");
+                    }
+
+                    UpdateDatasourceOperation updateDatasourceOperation = new UpdateDatasourceOperation(
+                            Model.instance.account.getOpeClientId(),
+                            Model.instance.account.getMasterKey().getValue(),
+                            newDatasource,
+                            new OperationCallback() {
+                                @Override
+                                public void process(Object object, Exception exception) {
+                                    if (exception == null) {
+                                        getDatasources();
+                                        Model.instance.currentDatasource = (Datasource)object; // update current Datasource
+                                    } else {
+                                        Errors.displayError(getActivity(), exception);
+                                    }
+                                }
+                            });
+
+                    updateDatasourceOperation.execute("");
+                } else {
+                    newDatasource.setName(name.getText().toString());
+                    newDatasource.setDescription(description.getText().toString());
+                    newDatasource.setSerial(serial.getText().toString());
+
+                    String callbackUrl = callback.getText().toString();
+
+                    if ("".equals(callbackUrl)) {
+                        newDatasource.setCallback(null);
+                    } else {
+                        try {
+                            URL url = new URL(callbackUrl);
+                            Callback newCallback = new Callback();
+                            newCallback.setUrl(url.toString());
+                            newCallback.setStatus("activated");
+                            newCallback.setName("Callback");
+                            newCallback.setDescription("application callback");
+                            newDatasource.setCallback(newCallback);
+                        } catch (MalformedURLException e) {
+                            Log.e(TAG_NAME, e.toString());
+                            newDatasource.setCallback(null);
+                            callback.setText("");
+                        }
+                    }
+
+                    if (status.isChecked()) {
+                        newDatasource.setStatus("activated");
+                    } else {
+                        newDatasource.setStatus("deactivated");
+                    }
+
+                    CreateDatasourceOperation createDatasourceOperation = new CreateDatasourceOperation(
+                            Model.instance.account.getOpeClientId(),
+                            Model.instance.account.getMasterKey().getValue(),
+                            newDatasource,
+                            new OperationCallback() {
+                                @Override
+                                public void process(Object object, Exception exception) {
+                                    if (exception == null) {
+                                        getDatasources();
+                                    } else {
+                                        Errors.displayError(getActivity(), exception);
+                                    }
+                                }
+                            });
+
+                    createDatasourceOperation.execute("");
+                }
+
+                dialog.dismiss();
+            }
+        });
+
+        Button cancelButton = (Button) dialog.findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.setCancelable(false);
+        dialog.show();
     }
 }

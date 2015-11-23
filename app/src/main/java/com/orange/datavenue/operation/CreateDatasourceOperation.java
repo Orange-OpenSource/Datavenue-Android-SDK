@@ -26,24 +26,32 @@ public class CreateDatasourceOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = CreateDatasourceOperation.class.getSimpleName();
 
-    Account mAccount = null;
-    Datasource mDatasource = null;
+    String     mOpeClient         = null;
+    String     mKey               = null;
+    Datasource mDatasource        = null;
     Datasource mCreatedDatasource = null;
 
-    Exception mException = null;
+    OperationCallback mCallback  = null;
+    Exception         mException = null;
 
-    OperationCallback mCallback;
-
-    public CreateDatasourceOperation(Account account, Datasource datasource, OperationCallback op) {
-        mAccount = account;
-        mCallback = op;
+    /**
+     *
+     * @param opeClient
+     * @param key
+     * @param datasource
+     * @param callback
+     */
+    public CreateDatasourceOperation(String opeClient, String key, Datasource datasource, OperationCallback callback) {
+        mOpeClient  = opeClient;
+        mKey        = key;
+        mCallback   = callback;
         mDatasource = datasource;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        Config datasourceConfig = new Config(mAccount.getOpeClientId(), mAccount.getMasterKey().getValue());
-        DatasourcesApi datasourceApi = new DatasourcesApi(datasourceConfig);
+        Config config = new Config(mOpeClient, mKey);
+        DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
             mCreatedDatasource = datasourceApi.createDatasource(mDatasource);
@@ -61,7 +69,7 @@ public class CreateDatasourceOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-                mCallback.process(mCreatedDatasource, mException);
+            mCallback.process(mCreatedDatasource, mException);
         }
     }
 }

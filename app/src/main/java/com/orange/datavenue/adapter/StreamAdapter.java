@@ -59,6 +59,7 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
             holder.description = (TextView)convertView.findViewById(R.id.description);
             holder.unit = (TextView)convertView.findViewById(R.id.unit);
             holder.symbol = (TextView)convertView.findViewById(R.id.symbol);
+            holder.callback = (TextView)convertView.findViewById(R.id.callback);
             holder.created = (TextView)convertView.findViewById(R.id.created);
             holder.updated = (TextView)convertView.findViewById(R.id.updated);
             holder.latitude = (TextView)convertView.findViewById(R.id.latitude);
@@ -85,12 +86,17 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
             if (unit != null) {
                 if (unit.getName() != null) {
                     holder.unit.setText(unit.getName());
-
                 }
 
                 if (unit.getSymbol() != null) {
                     holder.symbol.setText(unit.getSymbol());
                 }
+            }
+
+            if (item.getCallback() != null) {
+                holder.callback.setText(item.getCallback().getUrl());
+            } else {
+                holder.callback.setText("");
             }
 
             holder.created.setText(item.getCreated());
@@ -131,6 +137,7 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
         TextView description;
         TextView unit;
         TextView symbol;
+        TextView callback;
         TextView created;
         TextView updated;
         TextView latitude;

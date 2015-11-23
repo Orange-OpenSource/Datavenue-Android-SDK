@@ -27,25 +27,35 @@ public class CreateStreamOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = CreateStreamOperation.class.getSimpleName();
 
-    Account mAccount = null;
-    Datasource mDatasource = null;
-    Stream mStream = null;
-    Stream mCreatedStream = null;
-    Exception mException = null;
+    String     mOpeClient     = null;
+    String     mKey           = null;
+    Datasource mDatasource    = null;
+    Stream     mStream        = null;
+    Stream     mCreatedStream = null;
 
-    OperationCallback mCallback;
+    OperationCallback mCallback  = null;
+    Exception         mException = null;
 
-    public CreateStreamOperation(Account account, Datasource datasource, Stream stream, OperationCallback op) {
-        mAccount = account;
-        mCallback = op;
+    /**
+     *
+     * @param opeClient
+     * @param key
+     * @param datasource
+     * @param stream
+     * @param callback
+     */
+    public CreateStreamOperation(String opeClient, String key, Datasource datasource, Stream stream, OperationCallback callback) {
+        mOpeClient  = opeClient;
+        mKey        = key;
+        mCallback   = callback;
         mDatasource = datasource;
-        mStream = stream;
+        mStream     = stream;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        Config datasourceConfig = new Config(mAccount.getOpeClientId(), mAccount.getMasterKey().getValue());
-        DatasourcesApi datasourceApi = new DatasourcesApi(datasourceConfig);
+        Config config = new Config(mOpeClient, mKey);
+        DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
             mCreatedStream = datasourceApi.createStream(mDatasource.getId(), mStream);
@@ -63,7 +73,7 @@ public class CreateStreamOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-                mCallback.process(mCreatedStream, mException);
+            mCallback.process(mCreatedStream, mException);
         }
     }
 }

@@ -30,21 +30,29 @@ public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = GetDatasourceOperation.class.getSimpleName();
 
-    Account mAccount = null;
-    Exception mException = null;
+    String  mOpeClient = null;
+    String  mKey       = null;
+    Page<List<Datasource>> mDatasources = null;
 
-    Page<List<Datasource>> mDatasources;
-    OperationCallback mCallback;
+    OperationCallback mCallback  = null;
+    Exception         mException = null;
 
-    public GetDatasourceOperation(Account account, OperationCallback op) {
-        mAccount = account;
-        mCallback = op;
+    /**
+     *
+     * @param opeClient
+     * @param key
+     * @param op
+     */
+    public GetDatasourceOperation(String opeClient, String key, OperationCallback op) {
+        mOpeClient = opeClient;
+        mKey       = key;
+        mCallback  = op;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-        Config datasourceConfig = new Config(mAccount.getOpeClientId(), mAccount.getMasterKey().getValue());
-        DatasourcesApi datasourceApi = new DatasourcesApi(datasourceConfig);
+        Config config = new Config(mOpeClient, mKey);
+        DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
             mDatasources = datasourceApi.listDatasource("1", "100");
@@ -62,7 +70,7 @@ public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-                mCallback.process(mDatasources, mException);
+            mCallback.process(mDatasources, mException);
         }
     }
 }

@@ -24,7 +24,7 @@ public class Model {
     public static final Model instance = new Model();
 
     public String oapiKey;
-    public String primaryMasterKey;
+    public String key; // key from Intent
     public String accountId;
 
     public Account account;
@@ -40,7 +40,7 @@ public class Model {
 
     public void reset() {
         oapiKey = "";
-        primaryMasterKey = "";
+        key = "";
         accountId = "";
         datasources = new ArrayList<Datasource>();
         streams = new ArrayList<Stream>();
