@@ -62,6 +62,7 @@ public class ValueFragment extends ListFragment implements Notifier {
 
     private ValueAdapter mValueAdapter;
     private List<Value> mValues = new ArrayList<Value>();
+    private boolean mHasMorePage = true;
     private int mPageNumber = 1;
     private int mPosition = -1;
     private int mTotalElement = -1;
@@ -133,7 +134,7 @@ public class ValueFragment extends ListFragment implements Notifier {
                 //Log.d(TAG_NAME, "position : " + mPosition);
 
                 if (position >= limit && totalItemCount > 0 && !mIsLoading) {
-                    if (totalItemCount < mTotalElement) {
+                    if (mHasMorePage) {
                         Log.d(TAG_NAME, "load next page");
                         mPageNumber++;
                         mIsLoading = true;
@@ -199,8 +200,8 @@ public class ValueFragment extends ListFragment implements Notifier {
                             Log.d(TAG_NAME, "value : " + Model.instance.currentValue.getId());
 
                             DeleteValueOperation deleteValueOperation = new DeleteValueOperation(
-                                    Model.instance.account.getOpeClientId(),
-                                    Model.instance.account.getMasterKey().getValue(),
+                                    Model.instance.oapiKey,
+                                    Model.instance.key,
                                     Model.instance.currentDatasource,
                                     Model.instance.currentStream,
                                     Model.instance.currentValue,
@@ -250,7 +251,7 @@ public class ValueFragment extends ListFragment implements Notifier {
 
     private void setTitle(int num, int total) {
         if (getActivity() != null) {
-            getActivity().setTitle(String.format(getString(R.string.value_activity_count), num, total));
+            getActivity().setTitle(String.format(getString(R.string.value_activity_count), num, num));
         }
     }
 
@@ -347,8 +348,8 @@ public class ValueFragment extends ListFragment implements Notifier {
                         }
 
                         CreateValueOperation createValueOperation = new CreateValueOperation(
-                                Model.instance.account.getOpeClientId(),
-                                Model.instance.account.getMasterKey().getValue(),
+                                Model.instance.oapiKey,
+                                Model.instance.key,
                                 Model.instance.currentDatasource,
                                 Model.instance.currentStream,
                                 newValue,
@@ -398,8 +399,8 @@ public class ValueFragment extends ListFragment implements Notifier {
 
                 if (mLocationService != null) {
                     mLocationService.setServiceParameters(
-                            Model.instance.account.getOpeClientId(),
-                            Model.instance.account.getMasterKey().getValue(),
+                            Model.instance.oapiKey,
+                            Model.instance.key,
                             Model.instance.currentDatasource,
                             Model.instance.currentStream);
                     mLocationService.register(this);
@@ -472,8 +473,8 @@ public class ValueFragment extends ListFragment implements Notifier {
         String[] params = { String.format("%1$d", page) };
         GetValueOperation getValuesOperation =
                 new GetValueOperation(
-                        Model.instance.account.getOpeClientId(),
-                        Model.instance.account.getMasterKey().getValue(),
+                        Model.instance.oapiKey,
+                        Model.instance.key,
                         Model.instance.currentDatasource,
                         Model.instance.currentStream,
                         new OperationCallback() {
@@ -482,6 +483,14 @@ public class ValueFragment extends ListFragment implements Notifier {
                                 if (exception == null) {
                                     Page<List<Value>> page = (Page<List<Value>>)object;
                                     List<Value> values = page.object;
+
+                                    if (values != null) {
+                                        if (values.size() >= GetValueOperation.PAGE_SIZE) {
+                                            mHasMorePage = true;
+                                        } else {
+                                            mHasMorePage = false;
+                                        }
+                                    }
 
                                     if (clearList) {
                                         Model.instance.values.clear();

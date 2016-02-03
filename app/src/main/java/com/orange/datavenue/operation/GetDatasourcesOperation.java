@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.orange.datavenue.OperationCallback;
 import com.orange.datavenue.client.Config;
+
 import com.orange.datavenue.client.api.DatasourcesApi;
 import com.orange.datavenue.client.common.HTTPException;
 import com.orange.datavenue.client.common.SDKException;
@@ -24,13 +25,13 @@ import java.util.List;
 /**
  * @author Stéphane SANDON
  */
-public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
+public class GetDatasourcesOperation extends AsyncTask<String, Void, String> {
 
-    private static final String TAG_NAME = GetDatasourceOperation.class.getSimpleName();
+    private static final String TAG_NAME = GetDatasourcesOperation.class.getSimpleName();
 
     String  mOpeClient = null;
     String  mKey       = null;
-    Datasource mDatasource = null;
+    Page<List<Datasource>> mDatasources = null;
 
     OperationCallback mCallback  = null;
     Exception         mException = null;
@@ -41,7 +42,7 @@ public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
      * @param key
      * @param op
      */
-    public GetDatasourceOperation(String opeClient, String key, OperationCallback op) {
+    public GetDatasourcesOperation(String opeClient, String key, OperationCallback op) {
         mOpeClient = opeClient;
         mKey       = key;
         mCallback  = op;
@@ -53,7 +54,7 @@ public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
         DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
-            mDatasource = datasourceApi.getDatasource(strings[0]);
+            mDatasources = datasourceApi.listDatasource("1", "100");
         } catch(HTTPException e) {
             Log.e(TAG_NAME, e.toString());
             mException = e;
@@ -68,7 +69,7 @@ public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-            mCallback.process(mDatasource, mException);
+            mCallback.process(mDatasources, mException);
         }
     }
 }

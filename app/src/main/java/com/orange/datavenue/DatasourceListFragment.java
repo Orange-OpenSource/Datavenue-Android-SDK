@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2015 Orange
- *
+ * <p/>
  * This software is distributed under the terms and conditions of the 'Apache-2.0'
  * license which can be found in the file 'LICENSE' in this package distribution
  * or at 'http://www.apache.org/licenses/LICENSE-2.0'.
@@ -28,14 +28,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.orange.datavenue.adapter.DatasourceAdapter;
+import com.orange.datavenue.client.Config;
 import com.orange.datavenue.client.model.Callback;
 import com.orange.datavenue.client.model.Datasource;
 import com.orange.datavenue.client.model.Page;
 import com.orange.datavenue.model.Model;
 import com.orange.datavenue.operation.CreateDatasourceOperation;
 import com.orange.datavenue.operation.DeleteDatasourceOperation;
-import com.orange.datavenue.operation.GetDatasourceOperation;
-import com.orange.datavenue.operation.UpdateDatasourceOperation;
+import com.orange.datavenue.operation.GetDatasourcesOperation;
 import com.orange.datavenue.utils.Errors;
 
 import java.net.MalformedURLException;
@@ -46,9 +46,9 @@ import java.util.List;
 /**
  * @author Stéphane SANDON
  */
-public class DatasourceFragment extends ListFragment {
+public class DatasourceListFragment extends ListFragment {
 
-    private static final String TAG_NAME = DatasourceFragment.class.getSimpleName();
+    private static final String TAG_NAME = DatasourceListFragment.class.getSimpleName();
 
     private DatasourceAdapter mDatasourceAdapter;
     private List<Datasource> mDatasources = new ArrayList<Datasource>();
@@ -56,11 +56,13 @@ public class DatasourceFragment extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG_NAME, "onCreate()");
         setHasOptionsMenu(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG_NAME, "onCreateView()");
         View view = inflater.inflate(R.layout.datasource_fragment_layout, container, false);
         return view;
     }
@@ -68,17 +70,21 @@ public class DatasourceFragment extends ListFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG_NAME, "onViewCreated()");
 
-        mDatasourceAdapter = new DatasourceAdapter(getActivity(), R.layout.datasource_item, R.id.name, mDatasources);
-        setListAdapter(mDatasourceAdapter);
+        if (mDatasourceAdapter == null) {
+            mDatasourceAdapter = new DatasourceAdapter(getActivity(), R.layout.datasource_item, R.id.name, mDatasources);
+            setListAdapter(mDatasourceAdapter);
+            getDatasources();
+        }
 
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG_NAME, "onClick()");
                 Model.instance.currentDatasource = (Datasource) parent.getItemAtPosition(position);
-                Intent intent = new Intent(getActivity(), StreamActivity.class);
-                startActivity(intent);
+
+                ((DatasourceActivity) getActivity()).changeLayout(DatasourceActivity.MODE_DETAIL);
             }
         });
 
@@ -94,7 +100,6 @@ public class DatasourceFragment extends ListFragment {
             }
         });
 
-        getDatasources();
     }
 
     private int mSelected;
@@ -119,8 +124,15 @@ public class DatasourceFragment extends ListFragment {
                     deleteDatasource();
                     mode.finish();
                     return true;
-                case R.id.action_update_datasource:
-                    createOrUpdateDatasource(false);
+                case R.id.action_share_datasource:
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    String message = String.format("%1$s/datasources/%2$s",
+                            Config.DEFAULT_BASE_URL,
+                            Model.instance.currentDatasource.getId());
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, message);
+                    sendIntent.setType("text/plain");
+                    startActivity(sendIntent);
                     mode.finish();
                     return true;
             }
@@ -150,7 +162,7 @@ public class DatasourceFragment extends ListFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add_datasource:
-                createOrUpdateDatasource(true);
+                createDatasource();
                 return true;
             default:
                 break;
@@ -163,6 +175,7 @@ public class DatasourceFragment extends ListFragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG_NAME, "onResume()");
+        setTitle(Model.instance.datasources.size(), Model.instance.datasources.size());
     }
 
     @Override
@@ -181,23 +194,23 @@ public class DatasourceFragment extends ListFragment {
      *
      */
     private void getDatasources() {
-        GetDatasourceOperation getDatasourceOperation = new GetDatasourceOperation(
-                Model.instance.account.getOpeClientId(),
-                Model.instance.account.getMasterKey().getValue(),
-                        new OperationCallback() {
-                            @Override
-                            public void process(Object object, Exception exception) {
-                                if (exception == null) {
-                                    Page<List<Datasource>> datasources = (Page<List<Datasource>>) object;
-                                    Model.instance.datasources = datasources.object;
-                                    Log.d(TAG_NAME, "datasources received = " + Model.instance.datasources.size());
-                                    setTitle(datasources.object.size(), datasources.totalCount);
-                                    updateAdapter();
-                                } else {
-                                    Errors.displayError(getActivity(), exception);
-                                }
-                            }
-                        });
+        GetDatasourcesOperation getDatasourceOperation = new GetDatasourcesOperation(
+                Model.instance.oapiKey,
+                Model.instance.key,
+                new OperationCallback() {
+                    @Override
+                    public void process(Object object, Exception exception) {
+                        if (exception == null) {
+                            Page<List<Datasource>> datasources = (Page<List<Datasource>>) object;
+                            Model.instance.datasources = datasources.object;
+                            Log.d(TAG_NAME, "datasources received = " + Model.instance.datasources.size());
+                            setTitle(datasources.object.size(), datasources.totalCount);
+                            updateAdapter();
+                        } else {
+                            Errors.displayError(getActivity(), exception);
+                        }
+                    }
+                });
 
         getDatasourceOperation.execute();
     }
@@ -233,8 +246,8 @@ public class DatasourceFragment extends ListFragment {
                 Log.d(TAG_NAME, "datasource : " + Model.instance.currentDatasource.getId());
 
                 DeleteDatasourceOperation deleteDatasourceOperation = new DeleteDatasourceOperation(
-                        Model.instance.account.getOpeClientId(),
-                        Model.instance.account.getMasterKey().getValue(),
+                        Model.instance.oapiKey,
+                        Model.instance.key,
                         Model.instance.currentDatasource,
                         new OperationCallback() {
                             @Override
@@ -267,20 +280,12 @@ public class DatasourceFragment extends ListFragment {
         dialog.show();
     }
 
-    /**
-     *
-     * @param isCreate
-     */
-    private void createOrUpdateDatasource(final boolean isCreate) {
+    private void createDatasource() {
         final android.app.Dialog dialog = new android.app.Dialog(getActivity());
 
         dialog.setContentView(R.layout.create_datasource_dialog);
 
-        if (isCreate) {
-            dialog.setTitle(R.string.add_datasource);
-        } else {
-            dialog.setTitle(R.string.update_datasource);
-        }
+        dialog.setTitle(R.string.add_datasource);
 
         final LinearLayout callbackLayout = (LinearLayout) dialog.findViewById(R.id.callback_layout);
         final EditText name = (EditText) dialog.findViewById(R.id.name);
@@ -293,24 +298,6 @@ public class DatasourceFragment extends ListFragment {
 
         Button actionButton = (Button) dialog.findViewById(R.id.add_button);
 
-        if (!isCreate) {
-            callbackLayout.setVisibility(View.GONE);
-            actionButton.setText(getString(R.string.update));
-
-            /**
-             * Set fields with current data
-             */
-            name.setText(Model.instance.currentDatasource.getName());
-            description.setText(Model.instance.currentDatasource.getDescription());
-            serial.setText(Model.instance.currentDatasource.getSerial());
-
-            if ("activated".equals(Model.instance.currentDatasource.getStatus())) {
-                status.setChecked(true);
-            } else if ("deactivated".equals(Model.instance.currentDatasource.getStatus())) {
-                status.setChecked(false);
-            }
-        }
-
         actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -321,99 +308,52 @@ public class DatasourceFragment extends ListFragment {
 
                 Datasource newDatasource = new Datasource();
 
-                if (!isCreate) {
-                    /**
-                     * update fields with no value will be deleted !
-                     */
-                    newDatasource.setId(Model.instance.currentDatasource.getId());              // set the previous ID
-                    newDatasource.setMetadata(Model.instance.currentDatasource.getMetadata());  // set the previous Metadata
-                    newDatasource.setGroup(Model.instance.currentDatasource.getGroup());        // set the previous Group
-                    newDatasource.setTemplate(Model.instance.currentDatasource.getTemplate());  // set the previous Template
-                    newDatasource.setName(name.getText().toString());
+                newDatasource.setName(name.getText().toString());
+                newDatasource.setDescription(description.getText().toString());
+                newDatasource.setSerial(serial.getText().toString());
 
-                    if ("".equals(description.getText().toString())) {
-                        newDatasource.setDescription(null);
-                    } else {
-                        newDatasource.setDescription(description.getText().toString());
-                    }
+                String callbackUrl = callback.getText().toString();
 
-                    if ("".equals(serial.getText().toString())) {
-                        newDatasource.setSerial(null);
-                    } else {
-                        newDatasource.setSerial(serial.getText().toString());
-                    }
-
-                    if (status.isChecked()) {
-                        newDatasource.setStatus("activated");
-                    } else {
-                        newDatasource.setStatus("deactivated");
-                    }
-
-                    UpdateDatasourceOperation updateDatasourceOperation = new UpdateDatasourceOperation(
-                            Model.instance.account.getOpeClientId(),
-                            Model.instance.account.getMasterKey().getValue(),
-                            newDatasource,
-                            new OperationCallback() {
-                                @Override
-                                public void process(Object object, Exception exception) {
-                                    if (exception == null) {
-                                        getDatasources();
-                                        Model.instance.currentDatasource = (Datasource)object; // update current Datasource
-                                    } else {
-                                        Errors.displayError(getActivity(), exception);
-                                    }
-                                }
-                            });
-
-                    updateDatasourceOperation.execute("");
+                if ("".equals(callbackUrl)) {
+                    newDatasource.setCallback(null);
                 } else {
-                    newDatasource.setName(name.getText().toString());
-                    newDatasource.setDescription(description.getText().toString());
-                    newDatasource.setSerial(serial.getText().toString());
-
-                    String callbackUrl = callback.getText().toString();
-
-                    if ("".equals(callbackUrl)) {
+                    try {
+                        URL url = new URL(callbackUrl);
+                        Callback newCallback = new Callback();
+                        newCallback.setUrl(url.toString());
+                        newCallback.setStatus("activated");
+                        newCallback.setName("Callback");
+                        newCallback.setDescription("application callback");
+                        newDatasource.setCallback(newCallback);
+                    } catch (MalformedURLException e) {
+                        Log.e(TAG_NAME, e.toString());
                         newDatasource.setCallback(null);
-                    } else {
-                        try {
-                            URL url = new URL(callbackUrl);
-                            Callback newCallback = new Callback();
-                            newCallback.setUrl(url.toString());
-                            newCallback.setStatus("activated");
-                            newCallback.setName("Callback");
-                            newCallback.setDescription("application callback");
-                            newDatasource.setCallback(newCallback);
-                        } catch (MalformedURLException e) {
-                            Log.e(TAG_NAME, e.toString());
-                            newDatasource.setCallback(null);
-                            callback.setText("");
-                        }
+                        callback.setText("");
                     }
-
-                    if (status.isChecked()) {
-                        newDatasource.setStatus("activated");
-                    } else {
-                        newDatasource.setStatus("deactivated");
-                    }
-
-                    CreateDatasourceOperation createDatasourceOperation = new CreateDatasourceOperation(
-                            Model.instance.account.getOpeClientId(),
-                            Model.instance.account.getMasterKey().getValue(),
-                            newDatasource,
-                            new OperationCallback() {
-                                @Override
-                                public void process(Object object, Exception exception) {
-                                    if (exception == null) {
-                                        getDatasources();
-                                    } else {
-                                        Errors.displayError(getActivity(), exception);
-                                    }
-                                }
-                            });
-
-                    createDatasourceOperation.execute("");
                 }
+
+                if (status.isChecked()) {
+                    newDatasource.setStatus("activated");
+                } else {
+                    newDatasource.setStatus("deactivated");
+                }
+
+                CreateDatasourceOperation createDatasourceOperation = new CreateDatasourceOperation(
+                        Model.instance.oapiKey,
+                        Model.instance.key,
+                        newDatasource,
+                        new OperationCallback() {
+                            @Override
+                            public void process(Object object, Exception exception) {
+                                if (exception == null) {
+                                    getDatasources();
+                                } else {
+                                    Errors.displayError(getActivity(), exception);
+                                }
+                            }
+                        });
+
+                createDatasourceOperation.execute("");
 
                 dialog.dismiss();
             }

@@ -16,35 +16,39 @@ import com.orange.datavenue.client.Config;
 import com.orange.datavenue.client.api.DatasourcesApi;
 import com.orange.datavenue.client.common.HTTPException;
 import com.orange.datavenue.client.common.SDKException;
-import com.orange.datavenue.client.model.Datasource;
 import com.orange.datavenue.client.model.Page;
+import com.orange.datavenue.client.model.Stream;
+import com.orange.datavenue.client.model.Datasource;
 
 import java.util.List;
 
 /**
  * @author Stéphane SANDON
  */
-public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
+public class GetStreamsOperation extends AsyncTask<String, Void, String> {
 
-    private static final String TAG_NAME = GetDatasourceOperation.class.getSimpleName();
+    private static final String TAG_NAME = GetStreamsOperation.class.getSimpleName();
 
-    String  mOpeClient = null;
-    String  mKey       = null;
+    String     mOpeClient  = null;
+    String     mKey        = null;
     Datasource mDatasource = null;
+    Page<List<Stream>> mStreams = null;
 
-    OperationCallback mCallback  = null;
+    OperationCallback mCallback = null;
     Exception         mException = null;
 
     /**
      *
      * @param opeClient
      * @param key
+     * @param datasource
      * @param op
      */
-    public GetDatasourceOperation(String opeClient, String key, OperationCallback op) {
-        mOpeClient = opeClient;
-        mKey       = key;
-        mCallback  = op;
+    public GetStreamsOperation(String opeClient, String key, Datasource datasource, OperationCallback op) {
+        mOpeClient  = opeClient;
+        mKey        = key;
+        mCallback   = op;
+        mDatasource = datasource;
     }
 
     @Override
@@ -53,7 +57,7 @@ public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
         DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
-            mDatasource = datasourceApi.getDatasource(strings[0]);
+            mStreams = datasourceApi.listStreams(mDatasource.getId(), "1", "100");
         } catch(HTTPException e) {
             Log.e(TAG_NAME, e.toString());
             mException = e;
@@ -68,7 +72,7 @@ public class GetDatasourceOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-            mCallback.process(mDatasource, mException);
+            mCallback.process(mStreams, mException);
         }
     }
 }

@@ -8,7 +8,7 @@
 
     <application android:allowBackup="true" android:icon="@mipmap/orange_logo" android:label="@string/app_name" android:theme="@style/AppTheme" >
 
-        <activity android:name=".MainActivity" android:label="@string/app_name" android:configChanges="orientation|screenLayout">
+        <activity android:name=".AccountActivity" android:label="@string/app_name" android:configChanges="orientation|screenLayout">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -17,7 +17,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="api.orange.com" android:pathPattern="/datavenue/v1/.*" />
+                <data android:scheme="https" android:host="api.orange.com" android:pathPattern="/datavenue/v1/accounts/.*" />
             </intent-filter>
         </activity>
 
@@ -25,9 +25,21 @@
         </activity>
 
         <activity android:name=".DatasourceActivity" android:label="@string/datasource_activity" android:configChanges="orientation|screenLayout">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+               <category android:name="android.intent.category.BROWSABLE"/>
+               <data android:scheme="https" android:host="api.orange.com" android:pathPattern="/datavenue/v1/datasources/.*" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".StreamActivity" android:label="@string/stream_activity" android:configChanges="orientation|screenLayout">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="api.orange.com" android:pathPattern="/datavenue/v1/datasources/.*/streams/.*" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".ValueActivity" android:label="@string/value_activity" android:configChanges="orientation|screenLayout">

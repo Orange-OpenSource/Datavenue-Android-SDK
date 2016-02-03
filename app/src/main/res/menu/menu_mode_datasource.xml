@@ -1,13 +1,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.orange.datavenue.MainActivity">
+    tools:context="com.orange.datavenue.DatasourceActivity">
 
     <item
-        android:id="@+id/action_update_datasource"
-        android:title="@string/update"
+        android:id="@+id/action_share_datasource"
+        android:title="@string/share"
         android:orderInCategory="100"
-        android:icon="@android:drawable/ic_menu_edit"
+        android:icon="@android:drawable/ic_menu_share"
         app:showAsAction="always" />
 
     <item

@@ -31,6 +31,7 @@ public class GetValueOperation extends AsyncTask<String, Void, String> {
 
     private static final String TAG_NAME = GetValueOperation.class.getSimpleName();
 
+    public static final int PAGE_SIZE = 10;
     String     mOpeClient  = null;
     String     mKey        = null;
     Datasource mDatasource = null;
@@ -64,7 +65,7 @@ public class GetValueOperation extends AsyncTask<String, Void, String> {
         DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
-            mValues = datasourceApi.listValues(mDatasource.getId(), mStream.getId(), page, "10");
+            mValues = datasourceApi.listValues(mDatasource.getId(), mStream.getId(), page, Integer.toString(PAGE_SIZE));
         } catch(HTTPException e) {
             Log.e(TAG_NAME, e.toString());
             mException = e;

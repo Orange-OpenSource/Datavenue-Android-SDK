@@ -29,7 +29,7 @@
             android:id="@+id/id"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"
+            android:layout_weight="4"
             style="@style/list_header_value"/>
 
     </LinearLayout>
@@ -53,7 +53,7 @@
             android:id="@+id/at"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"
+            android:layout_weight="4"
             style="@style/list_value" />
 
     </LinearLayout>
@@ -77,7 +77,7 @@
             android:id="@+id/value"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"
+            android:layout_weight="4"
             style="@style/list_value" />
 
     </LinearLayout>
@@ -101,7 +101,7 @@
             android:id="@+id/metadata"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"
+            android:layout_weight="4"
             style="@style/list_value" />
 
     </LinearLayout>
@@ -124,7 +124,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:layout_weight="4"
             android:orientation="horizontal">
 
             <TextView

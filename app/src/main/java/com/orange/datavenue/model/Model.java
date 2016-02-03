@@ -28,12 +28,12 @@ public class Model {
     public String accountId;
 
     public Account account;
-    public List<Datasource> datasources;
+    public List<Datasource> datasources = new ArrayList<Datasource>();
     public Datasource currentDatasource;
     public Value currentValue;
     public Stream currentStream;
-    public List<Stream> streams;
-    public List<Value> values;
+    public List<Stream> streams = new ArrayList<Stream>();
+    public List<Value> values = new ArrayList<Value>();
 
     private Model() {
     }

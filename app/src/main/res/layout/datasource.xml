@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/item_layout"
-    android:minWidth="280dp"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="10dp"
-    android:orientation="vertical" >
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,21 +12,21 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/at_label"
+            android:id="@+id/name_label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="right"
             style="@style/dialog_label"
-            android:text="at :"/>
+            android:text="name :"/>
 
         <EditText
-            android:id="@+id/at"
+            android:id="@+id/name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:layout_weight="4"
             android:singleLine="true"
-            android:hint="timestamp"
+            android:hint="name"
             android:textColorHint="@color/hint_color"
             android:inputType="textNoSuggestions"
             style="@style/dialog_value" />
@@ -44,23 +41,21 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/value_label"
+            android:id="@+id/description_label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="right"
             style="@style/dialog_label"
-            android:text="value :"/>
+            android:text="desc. :"/>
 
         <EditText
-            android:id="@+id/value"
+            android:id="@+id/description"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:layout_weight="4"
             android:singleLine="false"
-            android:lines="5"
-            android:minLines="5"
-            android:hint="JSON Value Playload"
+            android:hint="description"
             android:textColorHint="@color/hint_color"
             android:inputType="textNoSuggestions"
             style="@style/dialog_value" />
@@ -75,23 +70,53 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/metadata_label"
+            android:id="@+id/serial_label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="right"
             style="@style/dialog_label"
-            android:text="metadata :"/>
+            android:text="serial :"/>
 
         <EditText
-            android:id="@+id/metadata"
+            android:id="@+id/serial"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:inputType="textNoSuggestions"
-            android:singleLine="true"
-            android:hint="JSON Metadata Playload"
+            android:layout_weight="4"
+            android:singleLine="false"
+            android:hint="serial"
             android:textColorHint="@color/hint_color"
+            android:inputType="textNoSuggestions"
+            style="@style/dialog_value" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/callback_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/callback_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            style="@style/dialog_label"
+            android:text="callback :"/>
+
+        <EditText
+            android:id="@+id/callback"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:singleLine="false"
+            android:hint="http://mycallback"
+            android:textColorHint="@color/hint_color"
+            android:inputType="textNoSuggestions"
             style="@style/dialog_value" />
 
     </LinearLayout>
@@ -104,46 +129,21 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/location_label"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="right|center_vertical"
-            style="@style/dialog_label"
-            android:text="location :"/>
-
-        <LinearLayout
+            android:id="@+id/status_label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:gravity="right"
+            style="@style/dialog_label"
+            android:text="status :"/>
 
-            <EditText
-                android:id="@+id/latitude"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:inputType="numberDecimal|numberSigned"
-                android:hint="latitude"
-                android:textColorHint="@color/hint_color"
-                android:singleLine="true"
-                style="@style/dialog_value" />
-
-            <EditText
-                android:id="@+id/longitude"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:inputType="numberDecimal|numberSigned"
-                android:hint="longitude"
-                android:textColorHint="@color/hint_color"
-                android:singleLine="true"
-                style="@style/dialog_value" />
-
-        </LinearLayout>
+        <CheckBox
+            android:id="@+id/status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            style="@style/dialog_value" />
 
     </LinearLayout>
-
-    <include layout="@layout/add_cancel_button" />
 
 </LinearLayout>

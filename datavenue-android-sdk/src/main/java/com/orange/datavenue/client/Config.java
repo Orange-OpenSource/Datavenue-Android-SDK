@@ -45,7 +45,6 @@ public class Config {
 	public void setOpeKey(String opeKey) {
 		this.opeKey = opeKey;
 	}
-	
 
 	public String getXISSKey() {
 		return XISSKey;

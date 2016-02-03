@@ -12,7 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.Uri;
+
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,15 +29,16 @@ import com.orange.datavenue.client.model.AccountsUpdate;
 import com.orange.datavenue.model.Model;
 import com.orange.datavenue.operation.GetAccountOperation;
 import com.orange.datavenue.operation.UpdateAccountOperation;
+import com.orange.datavenue.utils.IntentHelper;
 
 import java.util.List;
 
 /**
  * @author Stéphane SANDON
  */
-public class MainActivity extends AppCompatActivity {
+public class AccountActivity extends AppCompatActivity {
 
-    private static final String TAG_NAME = MainActivity.class.getSimpleName();
+    private static final String TAG_NAME = AccountActivity.class.getSimpleName();
 
     private TextView mAccountId;
     private TextView mAccountCreated;
@@ -66,53 +67,10 @@ public class MainActivity extends AppCompatActivity {
 
         Model.instance.reset();
 
-        Intent receivedIntent = getIntent();
-        Uri uri = receivedIntent.getData();
-
-        String intentAccountId = "";
-        String intentDatasourceId = "";
-        String intentStreamId = "";
-        String intentOpe = "";
-        String intentKey = "";
-
-        if (uri != null) {
-            Log.d(TAG_NAME, "Intent received !");
-            Log.d(TAG_NAME, "uri=" + uri.toString());
-            intentOpe = uri.getQueryParameter("ope");
-            intentKey = uri.getQueryParameter("key");
-
-            Model.instance.oapiKey = intentOpe;
-            Model.instance.key = intentKey;
-
-            List<String> segments = uri.getPathSegments();
-            boolean isAccount = false;
-            boolean isDataSource = false;
-            boolean isStream = false;
-
-            for (String segment: segments) {
-                if ("accounts".equals(segment)) {
-                    isAccount = true;
-                } else if ("datasources".equals(segment)) {
-                    isDataSource = true;
-                } else if ("streams".equals(segment)) {
-                    isStream = true;
-                } else {
-                    if (isAccount) {
-                        intentAccountId = segment;
-                        isAccount = false;
-                    } else if (isDataSource) {
-                        intentDatasourceId = segment;
-                        isDataSource = false;
-                    } else if (isStream) {
-                        intentStreamId = segment;
-                        isStream = false;
-                    }
-                }
-            }
-
-            Log.d(TAG_NAME, "accountId=" + intentAccountId);
-            Log.d(TAG_NAME, "datasourceId=" + intentDatasourceId);
-            Log.d(TAG_NAME, "streamId=" + intentStreamId);
+        IntentHelper.Data intentData = IntentHelper.getIntentData(getIntent());
+        if (intentData != null) {
+            Model.instance.oapiKey = intentData.ope;
+            Model.instance.key     = intentData.key;
         }
 
         if (mPreferences == null) {
@@ -132,19 +90,20 @@ public class MainActivity extends AppCompatActivity {
         mDatasourcesButton = (Button) findViewById(R.id.datasources);
 
         // if not already logged
-        if ( (!mPreferences.getBoolean("LOGIN_VERIFIED", false)) ||
-                ((!"".equals(intentAccountId))&&(!"".equals(intentOpe))&&(!"".equals(intentKey))) ) {
-
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.putExtra("account", intentAccountId);
-                intent.putExtra("ope", intentOpe);
-                intent.putExtra("key", intentKey);
-
-                startActivityForResult(intent, 100);
+        if ( (!mPreferences.getBoolean("LOGIN_VERIFIED", false)) || (intentData != null)) {
+  //              ((!"".equals(intentData.accountId))&&(!"".equals(intentData.ope))&&(!"".equals(intentData.key))) ) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.putExtra("account", (intentData == null)?"":(intentData.accountId));
+            intent.putExtra("ope", (intentData == null)?"":(intentData.ope));
+            intent.putExtra("key", (intentData == null)?"":(intentData.key));
+            startActivityForResult(intent, 100);
         } else {
-            String oapiKey = mPreferences.getString("OAPI_KEY", "");
+            String oapiKey          = mPreferences.getString("OAPI_KEY", "");
             String primaryMasterKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
-            String accountId = mPreferences.getString("ACCOUNT_ID", "");
+            String accountId        = mPreferences.getString("ACCOUNT_ID", "");
+            Model.instance.oapiKey   = oapiKey;
+            Model.instance.key       = primaryMasterKey;
+            Model.instance.accountId = accountId;
             getAccount(oapiKey, primaryMasterKey, accountId);
         }
 
@@ -195,10 +154,9 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     Log.d(TAG_NAME, "accountsUpdate : " + accountsUpdate.toString());
-                    String oapiKey = mPreferences.getString("OAPI_KEY", "");
+                    String oapiKey          = mPreferences.getString("OAPI_KEY", "");
                     String primaryMasterKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
-                    String accountId = mPreferences.getString("ACCOUNT_ID", "");
-
+                    String accountId        = mPreferences.getString("ACCOUNT_ID", "");
                     updateAccount(accountsUpdate, oapiKey, primaryMasterKey, accountId);
                 }
             }
@@ -208,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (Model.instance.account != null) {
+                    Model.instance.key = Model.instance.account.getMasterKey().getValue();
                     Intent intent = new Intent(getApplicationContext(), DatasourceActivity.class);
                     startActivity(intent);
                 }
@@ -251,9 +210,9 @@ public class MainActivity extends AppCompatActivity {
         // we came from login screen
         if (requestCode == 100) {
             if (resultCode == 0) {
-                String oapiKey = mPreferences.getString("OAPI_KEY", "");
+                String oapiKey          = mPreferences.getString("OAPI_KEY", "");
                 String primaryMasterKey = mPreferences.getString("PRIMARY_MASTER_KEY", "");
-                String accountId = mPreferences.getString("ACCOUNT_ID", "");
+                String accountId        = mPreferences.getString("ACCOUNT_ID", "");
                 getAccount(oapiKey, primaryMasterKey, accountId);
             } else {
                 finish();
@@ -286,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                                     mAccountOpeClientId.setText(account.getOpeClientId());
                                     mAccountOpeUserPassword.setText(account.getUserPassword());
                                 } else {
-                                    Errors.displayError(MainActivity.this, exception);
+                                    Errors.displayError(AccountActivity.this, exception);
                                 }
                             }
                         });
@@ -318,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
                                     mAccountOpeClientId.setText(account.getOpeClientId());
                                     mAccountOpeUserPassword.setText(account.getUserPassword());
                                 } else {
-                                    Errors.displayError(MainActivity.this, exception);
+                                    Errors.displayError(AccountActivity.this, exception);
                                 }
                             }
                         });

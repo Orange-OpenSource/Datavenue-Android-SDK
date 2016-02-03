@@ -16,12 +16,9 @@ import com.orange.datavenue.client.Config;
 import com.orange.datavenue.client.api.DatasourcesApi;
 import com.orange.datavenue.client.common.HTTPException;
 import com.orange.datavenue.client.common.SDKException;
-import com.orange.datavenue.client.model.Account;
-import com.orange.datavenue.client.model.Page;
-import com.orange.datavenue.client.model.Stream;
 import com.orange.datavenue.client.model.Datasource;
 
-import java.util.List;
+import com.orange.datavenue.client.model.Stream;
 
 /**
  * @author Stéphane SANDON
@@ -33,7 +30,7 @@ public class GetStreamOperation extends AsyncTask<String, Void, String> {
     String     mOpeClient  = null;
     String     mKey        = null;
     Datasource mDatasource = null;
-    Page<List<Stream>> mStreams = null;
+    Stream     mStream = null;
 
     OperationCallback mCallback = null;
     Exception         mException = null;
@@ -58,7 +55,7 @@ public class GetStreamOperation extends AsyncTask<String, Void, String> {
         DatasourcesApi datasourceApi = new DatasourcesApi(config);
 
         try {
-            mStreams = datasourceApi.listStreams(mDatasource.getId(), "1", "100");
+            mStream = datasourceApi.getStream(mDatasource.getId(), strings[0]);
         } catch(HTTPException e) {
             Log.e(TAG_NAME, e.toString());
             mException = e;
@@ -73,7 +70,7 @@ public class GetStreamOperation extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         if (mCallback != null) {
-            mCallback.process(mStreams, mException);
+            mCallback.process(mStream, mException);
         }
     }
 }

@@ -57,14 +57,6 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
             holder.id = (TextView)convertView.findViewById(R.id.id);
             holder.name = (TextView)convertView.findViewById(R.id.name);
             holder.description = (TextView)convertView.findViewById(R.id.description);
-            holder.unit = (TextView)convertView.findViewById(R.id.unit);
-            holder.symbol = (TextView)convertView.findViewById(R.id.symbol);
-            holder.callback = (TextView)convertView.findViewById(R.id.callback);
-            holder.created = (TextView)convertView.findViewById(R.id.created);
-            holder.updated = (TextView)convertView.findViewById(R.id.updated);
-            holder.latitude = (TextView)convertView.findViewById(R.id.latitude);
-            holder.longitude = (TextView)convertView.findViewById(R.id.longitude);
-            holder.last_value = (TextView)convertView.findViewById(R.id.last_value);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder)convertView.getTag();
@@ -77,55 +69,6 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
             holder.id.setText(item.getId());
             holder.name.setText(item.getName());
             holder.description.setText(item.getDescription());
-
-            Unit unit = item.getUnit();
-
-            holder.unit.setText("");
-            holder.symbol.setText("");
-
-            if (unit != null) {
-                if (unit.getName() != null) {
-                    holder.unit.setText(unit.getName());
-                }
-
-                if (unit.getSymbol() != null) {
-                    holder.symbol.setText(unit.getSymbol());
-                }
-            }
-
-            if (item.getCallback() != null) {
-                holder.callback.setText(item.getCallback().getUrl());
-            } else {
-                holder.callback.setText("");
-            }
-
-            holder.created.setText(item.getCreated());
-            holder.updated.setText(item.getUpdated());
-            Double[] location = item.getLocation();
-
-            if (location != null) {
-                if (location.length >= 2) {
-                    holder.latitude.setText(String.format("%1$f", location[0]));
-                    holder.longitude.setText(String.format("%1$f", location[1]));
-                }
-            } else {
-                holder.latitude.setText("");
-                holder.longitude.setText("");
-            }
-
-            try {
-                String jsonLastValue = ApiInvoker.serialize(item.getLastValue());
-
-                if (!"\"\"".equals(jsonLastValue)) {
-                    holder.last_value.setText(jsonLastValue);
-                } else {
-                    holder.last_value.setText("");
-                }
-
-            } catch(SDKException e) {
-                Log.e(TAG_NAME, e.toString());
-            }
-
         }
 
         return convertView;
@@ -135,13 +78,5 @@ public class StreamAdapter extends ArrayAdapter<Stream> {
         TextView id;
         TextView name;
         TextView description;
-        TextView unit;
-        TextView symbol;
-        TextView callback;
-        TextView created;
-        TextView updated;
-        TextView latitude;
-        TextView longitude;
-        TextView last_value;
     }
 }

@@ -54,10 +54,6 @@ public class DatasourceAdapter extends ArrayAdapter<Datasource> {
             holder.id = (TextView)convertView.findViewById(R.id.id);
             holder.name = (TextView)convertView.findViewById(R.id.name);
             holder.description = (TextView)convertView.findViewById(R.id.description);
-            holder.serial = (TextView)convertView.findViewById(R.id.serial);
-            holder.callback = (TextView)convertView.findViewById(R.id.callback);
-            holder.created = (TextView)convertView.findViewById(R.id.created);
-            holder.updated = (TextView)convertView.findViewById(R.id.updated);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder)convertView.getTag();
@@ -70,14 +66,6 @@ public class DatasourceAdapter extends ArrayAdapter<Datasource> {
             holder.id.setText(item.getId());
             holder.name.setText(item.getName());
             holder.description.setText(item.getDescription());
-            holder.serial.setText(item.getSerial());
-            if (item.getCallback() != null) {
-                holder.callback.setText(item.getCallback().getUrl());
-            } else {
-                holder.callback.setText("");
-            }
-            holder.created.setText(item.getCreated());
-            holder.updated.setText(item.getUpdated());
         }
 
         return convertView;
@@ -87,9 +75,5 @@ public class DatasourceAdapter extends ArrayAdapter<Datasource> {
         TextView id;
         TextView name;
         TextView description;
-        TextView serial;
-        TextView callback;
-        TextView created;
-        TextView updated;
     }
 }

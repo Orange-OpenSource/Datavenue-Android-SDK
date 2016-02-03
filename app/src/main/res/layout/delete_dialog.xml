@@ -18,24 +18,7 @@
 		android:gravity="center"
 		android:layout_gravity="center"
 		android:text=""/>
-	<LinearLayout 
-    	android:orientation="horizontal"
-    	android:layout_width="match_parent"
-    	android:layout_height="match_parent"
-		android:layout_marginLeft="10dp"
-		android:layout_marginRight="10dp"
-		android:layout_marginBottom="10dp">
-    	<Button 
-			android:id="@+id/delete_button"
-			android:layout_height="match_parent"
-			android:layout_width="match_parent"
-			android:layout_weight="1"
-			android:text="@string/delete"/>
-		<Button
-			android:id="@+id/cancel_button"
-			android:layout_height="match_parent"
-			android:layout_width="match_parent"
-			android:layout_weight="1"
-			android:text="@string/cancel"/>
-    </LinearLayout>
+
+	<include layout="@layout/delete_cancel_button"/>
+
 </LinearLayout>
