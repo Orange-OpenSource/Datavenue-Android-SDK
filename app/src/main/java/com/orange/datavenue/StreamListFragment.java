@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.util.Log;
@@ -26,6 +27,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.orange.datavenue.client.Config;
@@ -66,7 +68,38 @@ public class StreamListFragment extends ListFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.stream_fragment_layout, container, false);
+
+        ListView listView = (ListView)view.findViewById(android.R.id.list);
+
+        final ScrollChildSwipeRefreshLayout swipeRefreshLayout = (ScrollChildSwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
+        swipeRefreshLayout.setColorSchemeColors(
+                getActivity().getResources().getColor(R.color.orange),
+                getActivity().getResources().getColor(R.color.hint_color),
+                getActivity().getResources().getColor(R.color.hint_color)
+        );
+
+        swipeRefreshLayout.setScrollUpChild(listView);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getStreams();
+            }
+        });
         return view;
+    }
+
+    private void setLoadingIndicator(final boolean active) {
+        if (getView() == null) {
+            return;
+        }
+
+        final SwipeRefreshLayout srl = (SwipeRefreshLayout) getView().findViewById(R.id.refresh_layout);
+        srl.post(new Runnable() {
+            @Override
+            public void run() {
+                srl.setRefreshing(active);
+            }
+        });
     }
 
     @Override
@@ -204,6 +237,7 @@ public class StreamListFragment extends ListFragment {
     }
 
     private void getStreams() {
+        setLoadingIndicator(true);
         GetStreamsOperation getStreamOperation =
                 new GetStreamsOperation(
                         Model.instance.oapiKey,
@@ -213,6 +247,7 @@ public class StreamListFragment extends ListFragment {
 
                             @Override
                             public void process(Object object, Exception exception) {
+                                setLoadingIndicator(false);
                                 if (exception == null) {
                                     Page<List<Stream>> page = (Page<List<Stream>>) object;
                                     Model.instance.streams = page.object;

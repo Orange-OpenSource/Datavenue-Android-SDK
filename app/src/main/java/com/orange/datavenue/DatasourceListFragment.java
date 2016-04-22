@@ -11,6 +11,8 @@ package com.orange.datavenue;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.util.Log;
@@ -25,6 +27,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.orange.datavenue.adapter.DatasourceAdapter;
@@ -64,7 +67,38 @@ public class DatasourceListFragment extends ListFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG_NAME, "onCreateView()");
         View view = inflater.inflate(R.layout.datasource_fragment_layout, container, false);
+
+        ListView listView = (ListView)view.findViewById(android.R.id.list);
+
+        final ScrollChildSwipeRefreshLayout swipeRefreshLayout = (ScrollChildSwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
+        swipeRefreshLayout.setColorSchemeColors(
+                getActivity().getResources().getColor(R.color.orange),
+                getActivity().getResources().getColor(R.color.hint_color),
+                getActivity().getResources().getColor(R.color.hint_color)
+        );
+
+        swipeRefreshLayout.setScrollUpChild(listView);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getDatasources();
+            }
+        });
         return view;
+    }
+
+    private void setLoadingIndicator(final boolean active) {
+        if (getView() == null) {
+            return;
+        }
+
+        final SwipeRefreshLayout srl = (SwipeRefreshLayout) getView().findViewById(R.id.refresh_layout);
+        srl.post(new Runnable() {
+            @Override
+            public void run() {
+                srl.setRefreshing(active);
+            }
+        });
     }
 
     @Override
@@ -194,12 +228,14 @@ public class DatasourceListFragment extends ListFragment {
      *
      */
     private void getDatasources() {
+        setLoadingIndicator(true);
         GetDatasourcesOperation getDatasourceOperation = new GetDatasourcesOperation(
                 Model.instance.oapiKey,
                 Model.instance.key,
                 new OperationCallback() {
                     @Override
                     public void process(Object object, Exception exception) {
+                        setLoadingIndicator(false);
                         if (exception == null) {
                             Page<List<Datasource>> datasources = (Page<List<Datasource>>) object;
                             Model.instance.datasources = datasources.object;

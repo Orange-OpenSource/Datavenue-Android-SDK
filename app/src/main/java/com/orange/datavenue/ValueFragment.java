@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.util.Log;
@@ -30,11 +31,13 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import com.orange.datavenue.adapter.StreamAdapter;
 import com.orange.datavenue.client.model.Page;
 import com.orange.datavenue.utils.Errors;
 import com.orange.datavenue.adapter.ValueAdapter;
@@ -93,9 +96,11 @@ public class ValueFragment extends ListFragment implements Notifier {
     private LinearLayout llValue;
     private TextView tvLatitude;
     private TextView tvLongitude;
+    private ScrollChildSwipeRefreshLayout mSwipeRefreshLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG_NAME, "onCreate()");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
@@ -108,16 +113,53 @@ public class ValueFragment extends ListFragment implements Notifier {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG_NAME, "onCreateView()");
         View view = inflater.inflate(R.layout.value_fragment_layout, container, false);
+
+        ListView listView = (ListView)view.findViewById(android.R.id.list);
+
+        mSwipeRefreshLayout = (ScrollChildSwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
+        mSwipeRefreshLayout.setColorSchemeColors(
+                getActivity().getResources().getColor(R.color.orange),
+                getActivity().getResources().getColor(R.color.hint_color),
+                getActivity().getResources().getColor(R.color.hint_color)
+        );
+
+        mSwipeRefreshLayout.setScrollUpChild(listView);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mPageNumber = 1;
+                getValues(mPageNumber, true); // clear the list when we refresh
+            }
+        });
         return view;
+    }
+
+    private void setLoadingIndicator(final boolean active) {
+        if (getView() == null) {
+            return;
+        }
+
+        mSwipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeRefreshLayout.setRefreshing(active);
+            }
+        });
+
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        Log.d(TAG_NAME, "onViewCreated()");
         super.onViewCreated(view, savedInstanceState);
-        mValueAdapter = new ValueAdapter(getActivity(), R.layout.value_item, R.id.name, mValues);
 
-        setListAdapter(mValueAdapter);
+        if (mValueAdapter == null) {
+            mValueAdapter = new ValueAdapter(getActivity(), R.layout.value_item, R.id.name, mValues);
+            setListAdapter(mValueAdapter);
+            getValues(mPageNumber, true);
+        }
 
         getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
 
@@ -131,14 +173,13 @@ public class ValueFragment extends ListFragment implements Notifier {
                 int position = firstVisibleItem + visibleItemCount;
                 int limit = totalItemCount;
                 mPosition = firstVisibleItem;
-                //Log.d(TAG_NAME, "position : " + mPosition);
 
                 if (position >= limit && totalItemCount > 0 && !mIsLoading) {
                     if (mHasMorePage) {
                         Log.d(TAG_NAME, "load next page");
                         mPageNumber++;
                         mIsLoading = true;
-                        getValues(mPageNumber, false);
+                        getValues(mPageNumber, false); // Append to the list when we scroll throw pages
                     }
                 }
             }
@@ -158,7 +199,6 @@ public class ValueFragment extends ListFragment implements Notifier {
 
         });
 
-        getValues(mPageNumber, true);
     }
 
     private int mSelected;
@@ -435,7 +475,7 @@ public class ValueFragment extends ListFragment implements Notifier {
     @Override
     public void onResume() {
         super.onResume();
-            Log.d(TAG_NAME, "onResume()");
+        Log.d(TAG_NAME, "onResume()");
     }
 
     @Override
@@ -470,6 +510,7 @@ public class ValueFragment extends ListFragment implements Notifier {
     }
 
     private void getValues(int page, final boolean clearList) {
+        setLoadingIndicator(true);
         String[] params = { String.format("%1$d", page) };
         GetValueOperation getValuesOperation =
                 new GetValueOperation(
@@ -478,8 +519,10 @@ public class ValueFragment extends ListFragment implements Notifier {
                         Model.instance.currentDatasource,
                         Model.instance.currentStream,
                         new OperationCallback() {
+
                             @Override
                             public void process(Object object, Exception exception) {
+                                setLoadingIndicator(false);
                                 if (exception == null) {
                                     Page<List<Value>> page = (Page<List<Value>>)object;
                                     List<Value> values = page.object;
